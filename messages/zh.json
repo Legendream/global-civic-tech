@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "title": "全球公民科技動態",
+    "description": "追蹤全球公民科技最新發展，自動翻譯成繁體中文每日摘要"
+  },
+  "nav": {
+    "home": "每日摘要",
+    "digest": "歷史報告",
+    "cases": "案例列表",
+    "map": "全球地圖"
+  },
+  "home": {
+    "title": "全球公民科技動態",
+    "subtitle": "每日自動彙整全球公民科技最新消息，繁體中文呈現",
+    "todayDigest": "今日摘要",
+    "noDigest": "今日摘要尚未生成",
+    "recentCases": "最新案例",
+    "viewAll": "查看全部",
+    "source": "來源",
+    "readMore": "閱讀原文"
+  },
+  "digest": {
+    "title": "歷史報告",
+    "selectDate": "選擇日期",
+    "articles": "則案例",
+    "noData": "該日期無資料"
+  },
+  "cases": {
+    "title": "全部案例",
+    "filterCountry": "國家 / 地區",
+    "filterTag": "標籤",
+    "filterAll": "全部",
+    "noResults": "無符合條件的案例",
+    "source": "來源",
+    "publishedAt": "發布日期"
+  },
+  "map": {
+    "title": "全球公民科技地圖",
+    "subtitle": "點擊國家查看該地公民科技案例",
+    "cases": "件案例",
+    "viewCases": "查看案例"
+  },
+  "footer": {
+    "description": "追蹤全球公民科技發展，每日自動更新",
+    "sourceCode": "原始碼",
+    "dataSource": "資料來源"
+  }
+}

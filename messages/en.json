@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "title": "Global Civic Tech Watch",
+    "description": "Daily updates on global civic tech developments, automatically curated and translated"
+  },
+  "nav": {
+    "home": "Daily Digest",
+    "digest": "Archive",
+    "cases": "Cases",
+    "map": "World Map"
+  },
+  "home": {
+    "title": "Global Civic Tech Watch",
+    "subtitle": "Daily civic tech news from around the world, automatically curated",
+    "todayDigest": "Today's Digest",
+    "noDigest": "Today's digest has not been generated yet",
+    "recentCases": "Recent Cases",
+    "viewAll": "View All",
+    "source": "Source",
+    "readMore": "Read Original"
+  },
+  "digest": {
+    "title": "Digest Archive",
+    "selectDate": "Select date",
+    "articles": "cases",
+    "noData": "No data for this date"
+  },
+  "cases": {
+    "title": "All Cases",
+    "filterCountry": "Country / Region",
+    "filterTag": "Tag",
+    "filterAll": "All",
+    "noResults": "No matching cases",
+    "source": "Source",
+    "publishedAt": "Published"
+  },
+  "map": {
+    "title": "Global Civic Tech Map",
+    "subtitle": "Click a country to see its civic tech cases",
+    "cases": "cases",
+    "viewCases": "View Cases"
+  },
+  "footer": {
+    "description": "Tracking global civic tech developments, updated daily",
+    "sourceCode": "Source Code",
+    "dataSource": "Data Sources"
+  }
+}
