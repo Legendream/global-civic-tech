@@ -167,7 +167,7 @@ scripts/digest.ts
 
 ---
 
-## 目前狀態（2026-05-01）
+## 目前狀態（2026-05-10）
 
 ### 已完成
 - [x] Next.js 16 專案初始化（TypeScript、Tailwind、next-intl 雙語）
@@ -183,15 +183,17 @@ scripts/digest.ts
 - [x] GitHub repo 建立並推送：https://github.com/Legendream/global-civic-tech
 - [x] Supabase 專案建立（Project ID: `zcjmmvqmbfzbcupayksd`，Asia-Pacific）
 - [x] `supabase/schema.sql` 執行成功（articles + daily_digests + RLS + indexes）
-- [x] `.env.local` 建立，Supabase URL / Publishable key / Secret key 已填入
+- [x] Supabase `service_role` GRANT 權限補設（INSERT / UPDATE / DELETE）
+- [x] `.env.local` 建立，所有 API keys 填入（Supabase、DeepL、Anthropic）
+- [x] scripts 加入 `process.loadEnvFile('.env.local')` 讓本地執行可讀取 env
+- [x] 移除失效的 g0v.news RSS 來源
+- [x] 完整資料管道手動驗證成功：fetch（40 篇）→ process（20 篇）→ digest（2026-05-10）
+- [x] GitHub Secrets 設定完成（`SUPABASE_URL`、`SUPABASE_SERVICE_KEY`、`DEEPL_API_KEY`、`ANTHROPIC_API_KEY`）
+- [x] Vercel 部署成功：https://global-civic-tech.vercel.app
 
-### 待完成（部署前）
-- [ ] 取得 DeepL API key 填入 `.env.local`（`DEEPL_API_KEY`）
-- [ ] 取得 Anthropic API key 填入 `.env.local`（`ANTHROPIC_API_KEY`）
-- [ ] 手動執行 scripts 一次，確認資料能正確抓取、翻譯、摘要
-- [ ] 設定 GitHub Secrets（5 個：`SUPABASE_URL`、`SUPABASE_SERVICE_KEY`、`DEEPL_API_KEY`、`ANTHROPIC_API_KEY`、`GH_TOKEN`（選填））
-- [ ] Vercel 部署，設定 `NEXT_PUBLIC_SUPABASE_URL` 和 `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- [ ] 確認 GitHub Actions 第一次排程成功執行
+### 待完成
+- [ ] Vercel 環境變數確認並補設（`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`），重新部署後確認首頁有資料
+- [ ] 確認 GitHub Actions 第一次排程成功執行（每日 UTC 00:00）
 
 ### 後續優化（可選）
 - [ ] 驗證各 RSS feed URL 仍有效，補充更多來源
