@@ -3,6 +3,7 @@
  * 執行：npx tsx scripts/digest.ts
  */
 
+process.loadEnvFile?.(".env.local");
 import { createClient } from "@supabase/supabase-js";
 import Anthropic from "@anthropic-ai/sdk";
 

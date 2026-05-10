@@ -167,7 +167,7 @@ scripts/digest.ts
 
 ---
 
-## 目前狀態（2026-04-30）
+## 目前狀態（2026-05-01）
 
 ### 已完成
 - [x] Next.js 16 專案初始化（TypeScript、Tailwind、next-intl 雙語）
@@ -180,12 +180,16 @@ scripts/digest.ts
 - [x] GitHub Actions 每日排程（`.github/workflows/daily-update.yml`）
 - [x] `.env.example`、`README.md`
 - [x] `npm run build` 通過
+- [x] GitHub repo 建立並推送：https://github.com/Legendream/global-civic-tech
+- [x] Supabase 專案建立（Project ID: `zcjmmvqmbfzbcupayksd`，Asia-Pacific）
+- [x] `supabase/schema.sql` 執行成功（articles + daily_digests + RLS + indexes）
+- [x] `.env.local` 建立，Supabase URL / Publishable key / Secret key 已填入
 
 ### 待完成（部署前）
-- [ ] 在 Supabase 建立新專案，執行 `supabase/schema.sql`
-- [ ] 取得 API keys（DeepL、Anthropic、Supabase）填入 `.env.local`
+- [ ] 取得 DeepL API key 填入 `.env.local`（`DEEPL_API_KEY`）
+- [ ] 取得 Anthropic API key 填入 `.env.local`（`ANTHROPIC_API_KEY`）
 - [ ] 手動執行 scripts 一次，確認資料能正確抓取、翻譯、摘要
-- [ ] 推上 GitHub，設定 GitHub Secrets
+- [ ] 設定 GitHub Secrets（5 個：`SUPABASE_URL`、`SUPABASE_SERVICE_KEY`、`DEEPL_API_KEY`、`ANTHROPIC_API_KEY`、`GH_TOKEN`（選填））
 - [ ] Vercel 部署，設定 `NEXT_PUBLIC_SUPABASE_URL` 和 `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - [ ] 確認 GitHub Actions 第一次排程成功執行
 

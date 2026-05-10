@@ -3,6 +3,7 @@
  * 執行：npx tsx scripts/fetch.ts
  */
 
+process.loadEnvFile?.(".env.local");
 import RSSParser from "rss-parser";
 import { createClient } from "@supabase/supabase-js";
 
@@ -36,14 +37,6 @@ const SOURCES: FeedSource[] = [
     country_code: "GB",
     language: "en",
     tags: ["civic-tech", "uk", "democracy"],
-  },
-  {
-    name: "g0v.news",
-    url: "https://g0v.news/feed.xml",
-    country: "Taiwan",
-    country_code: "TW",
-    language: "zh",
-    tags: ["civic-tech", "taiwan", "open-source"],
   },
   {
     name: "Beeck Center",
