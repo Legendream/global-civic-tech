@@ -44,3 +44,10 @@ CREATE POLICY "Public read articles"
 
 CREATE POLICY "Public read digests"
   ON daily_digests FOR SELECT USING (true);
+
+-- Explicit grants (required for Data API access after Supabase 2026 change)
+GRANT SELECT ON articles TO anon;
+GRANT SELECT ON daily_digests TO anon;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON articles TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON daily_digests TO service_role;
