@@ -167,7 +167,7 @@ scripts/digest.ts
 
 ---
 
-## 目前狀態（2026-05-10）
+## 目前狀態（2026-05-14）
 
 ### 已完成
 - [x] Next.js 16 專案初始化（TypeScript、Tailwind、next-intl 雙語）
@@ -190,10 +190,12 @@ scripts/digest.ts
 - [x] 完整資料管道手動驗證成功：fetch（40 篇）→ process（20 篇）→ digest（2026-05-10）
 - [x] GitHub Secrets 設定完成（`SUPABASE_URL`、`SUPABASE_SERVICE_KEY`、`DEEPL_API_KEY`、`ANTHROPIC_API_KEY`）
 - [x] Vercel 部署成功：https://global-civic-tech.vercel.app
+- [x] `supabase/schema.sql` 補上明確 GRANT（anon SELECT、service_role 全權限），因應 Supabase 2026 Data API 預設變更
+- [x] GitHub Actions CI 修復：Node.js 20 → 24，解決 npm 10/11 對 `@swc/helpers` 版本解析不一致導致 `npm ci` 失敗的問題
 
 ### 待完成
 - [ ] Vercel 環境變數確認並補設（`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`），重新部署後確認首頁有資料
-- [ ] 確認 GitHub Actions 第一次排程成功執行（每日 UTC 00:00）
+- [ ] 確認 GitHub Actions 排程穩定執行（每日 UTC 00:00）
 
 ### 後續優化（可選）
 - [ ] 驗證各 RSS feed URL 仍有效，補充更多來源
