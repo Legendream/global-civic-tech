@@ -72,7 +72,7 @@ async function fetchGitHubRepos() {
 
   const data = await res.json();
   return (data.items ?? []).map((repo: Record<string, unknown>) => ({
-    title_original: `[GitHub] ${repo.full_name}: ${repo.description ?? "No description"}`,
+    title_original: (repo.description as string | null) || (repo.name as string),
     url: repo.html_url as string,
     source: "GitHub",
     country: null,
