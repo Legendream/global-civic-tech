@@ -54,6 +54,38 @@ const SOURCES: FeedSource[] = [
     language: "en",
     tags: ["civic-tech", "innovation", "uk"],
   },
+  {
+    name: "GovTech Review",
+    url: "https://www.govtechreview.com.au/feed.rss",
+    country: "Australia",
+    country_code: "AU",
+    language: "en",
+    tags: ["public-service", "open-data", "civic-tech"],
+  },
+  {
+    name: "GDS Blog",
+    url: "https://gds.blog.gov.uk/feed/",
+    country: "United Kingdom",
+    country_code: "GB",
+    language: "en",
+    tags: ["public-service", "open-source", "transparency"],
+  },
+  {
+    name: "Nextgov",
+    url: "https://www.nextgov.com/rss/all/",
+    country: "United States",
+    country_code: "US",
+    language: "en",
+    tags: ["public-service", "ai-governance", "civic-tech"],
+  },
+  {
+    name: "Federal News Network",
+    url: "https://federalnewsnetwork.com/feed/",
+    country: "United States",
+    country_code: "US",
+    language: "en",
+    tags: ["public-service", "transparency", "civic-tech"],
+  },
 ];
 
 // GitHub Topics API for civic-tech repos updated recently
@@ -65,7 +97,7 @@ async function fetchGitHubRepos() {
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(
-    "https://api.github.com/search/repositories?q=topic:civic-tech+pushed:>2020-01-01&sort=updated&per_page=20",
+    "https://api.github.com/search/repositories?q=topic:civic-tech+OR+topic:govtech+pushed:>2020-01-01&sort=updated&per_page=20",
     { headers }
   );
   if (!res.ok) return [];

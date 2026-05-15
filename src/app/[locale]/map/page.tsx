@@ -8,7 +8,6 @@ async function getArticlesWithCoords(): Promise<Article[]> {
   const { data } = await supabase
     .from("articles")
     .select("*")
-    .eq("processed", true)
     .not("country_code", "is", null);
   return data ?? [];
 }
