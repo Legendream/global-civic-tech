@@ -17,7 +17,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 // DeepL free API (api-free.deepl.com) or paid (api.deepl.com)
 async function translateWithDeepL(
   text: string,
-  targetLang: "ZH" | "EN-US"
+  targetLang: "ZH-HANT" | "EN-US"
 ): Promise<string> {
   const apiKey = process.env.DEEPL_API_KEY!;
   const host = apiKey.endsWith(":fx")
@@ -55,8 +55,8 @@ async function summarizeWithClaude(
       {
         role: "user",
         content: `你是公民科技研究助理。請根據以下文章標題，生成：
-1. 繁體中文摘要（100字以內，說明這是什麼、解決什麼問題、在哪個國家/地區）
-2. 英文摘要（under 80 words）
+1. 繁體中文摘要（50至100字，必須使用繁體中文，說明這是什麼專案或政策、解決什麼問題、在哪個國家/地區）
+2. 英文摘要（50 to 80 words）
 3. 3-5個英文標籤（小寫，用逗號分隔，例如：open-data,transparency,voting）
 
 文章標題：${titleZh}
@@ -111,7 +111,7 @@ async function main() {
       const titleZh =
         article.language_original === "zh"
           ? article.title_original
-          : await translateWithDeepL(article.title_original, "ZH");
+          : await translateWithDeepL(article.title_original, "ZH-HANT");
 
       const titleEn =
         article.language_original === "en"
