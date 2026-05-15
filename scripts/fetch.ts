@@ -85,7 +85,7 @@ async function fetchGitHubRepos() {
 }
 
 async function main() {
-  const parser = new RSSParser();
+  const parser = new RSSParser({ timeout: 10000 });
   const inserts: Record<string, unknown>[] = [];
 
   for (const source of SOURCES) {
