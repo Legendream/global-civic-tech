@@ -57,7 +57,8 @@ async function summarizeWithClaude(
         content: `你是公民科技研究助理。請根據以下文章標題，生成：
 1. 繁體中文摘要（50至100字，必須使用繁體中文，說明這是什麼專案或政策、解決什麼問題、在哪個國家/地區）
 2. 英文摘要（50 to 80 words）
-3. 3-5個英文標籤（小寫，用逗號分隔，例如：open-data,transparency,voting）
+3. 從以下清單中選擇 2-4 個最符合的標籤（只能從清單中選，不可自創）：
+   open-data, transparency, e-participation, ai-governance, election, environment, anti-corruption, accessibility, open-source, digital-rights, public-service, civic-tech
 
 文章標題：${titleZh}
 ${contentHint ? `補充：${contentHint}` : ""}
