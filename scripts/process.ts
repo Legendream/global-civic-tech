@@ -88,7 +88,7 @@ async function main() {
     .from("articles")
     .select("id, title_original, language_original, source, country")
     .eq("processed", false)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false })
     .limit(batchSize);
 
   if (error) {

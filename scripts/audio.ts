@@ -68,8 +68,8 @@ async function main() {
     .single();
 
   if (error || !digest) {
-    console.error("No digest found for", targetDate);
-    process.exit(1);
+    console.log("No digest found for", targetDate, "— skipping audio.");
+    return;
   }
 
   if (digest.audio_url) {
