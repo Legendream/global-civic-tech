@@ -20,6 +20,7 @@ async function getRecentArticles(): Promise<Article[]> {
     .from("articles")
     .select("*")
     .eq("processed", true)
+    .neq("source", "GitHub")
     .order("published_at", { ascending: false })
     .limit(12);
   return data ?? [];
