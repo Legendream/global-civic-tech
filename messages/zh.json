@@ -7,7 +7,8 @@
     "home": "每日摘要",
     "digest": "歷史報告",
     "cases": "案例列表",
-    "map": "全球地圖"
+    "map": "全球地圖",
+    "bookmarks": "靈感庫"
   },
   "home": {
     "title": "全球公民科技動態",
@@ -17,13 +18,17 @@
     "recentCases": "最新案例",
     "viewAll": "查看全部",
     "source": "來源",
-    "readMore": "閱讀原文"
+    "readMore": "閱讀原文",
+    "audioDigest": "語音摘要",
+    "audioHint": "適合慢跑、做家事時收聽"
   },
   "digest": {
     "title": "歷史報告",
     "selectDate": "選擇日期",
     "articles": "則案例",
-    "noData": "該日期無資料"
+    "noData": "該日期無資料",
+    "audioDigest": "語音摘要",
+    "audioHint": "繁體中文・台灣口音"
   },
   "cases": {
     "title": "全部案例",
@@ -32,13 +37,21 @@
     "filterAll": "全部",
     "noResults": "無符合條件的案例",
     "source": "來源",
-    "publishedAt": "發布日期"
+    "publishedAt": "發布日期",
+    "searchPlaceholder": "搜尋標題、摘要…",
+    "results": "則結果"
   },
   "map": {
     "title": "全球公民科技地圖",
     "subtitle": "點擊國家查看該地公民科技案例",
     "cases": "件案例",
     "viewCases": "查看案例"
+  },
+  "bookmarks": {
+    "title": "靈感庫",
+    "subtitle": "收藏感興趣的文章，作為寫作靈感來源",
+    "empty": "靈感庫是空的",
+    "emptyHint": "在案例列表中點擊書籤圖示，將感興趣的文章加入靈感庫"
   },
   "footer": {
     "description": "追蹤全球公民科技發展，每日自動更新",

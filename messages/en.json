@@ -7,7 +7,8 @@
     "home": "Daily Digest",
     "digest": "Archive",
     "cases": "Cases",
-    "map": "World Map"
+    "map": "World Map",
+    "bookmarks": "Saved"
   },
   "home": {
     "title": "Global Civic Tech Watch",
@@ -17,13 +18,17 @@
     "recentCases": "Recent Cases",
     "viewAll": "View All",
     "source": "Source",
-    "readMore": "Read Original"
+    "readMore": "Read Original",
+    "audioDigest": "Audio Digest",
+    "audioHint": "Perfect for exercising or commuting"
   },
   "digest": {
     "title": "Digest Archive",
     "selectDate": "Select date",
     "articles": "cases",
-    "noData": "No data for this date"
+    "noData": "No data for this date",
+    "audioDigest": "Audio Digest",
+    "audioHint": "Traditional Chinese · Taiwanese accent"
   },
   "cases": {
     "title": "All Cases",
@@ -32,13 +37,21 @@
     "filterAll": "All",
     "noResults": "No matching cases",
     "source": "Source",
-    "publishedAt": "Published"
+    "publishedAt": "Published",
+    "searchPlaceholder": "Search title, summary…",
+    "results": "results"
   },
   "map": {
     "title": "Global Civic Tech Map",
     "subtitle": "Click a country to see its civic tech cases",
     "cases": "cases",
     "viewCases": "View Cases"
+  },
+  "bookmarks": {
+    "title": "Saved Articles",
+    "subtitle": "Your reading inspiration for blog writing",
+    "empty": "No bookmarks yet",
+    "emptyHint": "Click the bookmark icon on any article card to save it here"
   },
   "footer": {
     "description": "Tracking global civic tech developments, updated daily",

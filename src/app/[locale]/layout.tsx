@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { BookmarkProvider } from "@/lib/bookmarks";
 import "../globals.css";
 
 const notoSansTC = Noto_Sans_TC({
@@ -47,9 +48,11 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${notoSansTC.variable} h-full`}>
       <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900 antialiased">
         <NextIntlClientProvider messages={messages}>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <BookmarkProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </BookmarkProvider>
         </NextIntlClientProvider>
       </body>
     </html>
