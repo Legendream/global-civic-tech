@@ -24,6 +24,7 @@ export type DailyDigest = {
   content_zh: string;
   content_en: string;
   article_count: number;
+  audio_url: string | null;
   created_at: string;
 };
 

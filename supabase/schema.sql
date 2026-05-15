@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS daily_digests (
   content_zh TEXT NOT NULL,
   content_en TEXT NOT NULL,
   article_count INTEGER DEFAULT 0,
+  audio_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

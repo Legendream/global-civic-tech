@@ -55,6 +55,13 @@ export default function DigestList({
             <div className="text-sm text-zinc-400 mb-4">
               {current.date} · {current.article_count} {isZh ? "則案例" : "cases"}
             </div>
+            {current.audio_url && (
+              <audio
+                controls
+                className="w-full mb-5 rounded-lg"
+                src={current.audio_url}
+              />
+            )}
             <div className="prose prose-zinc prose-sm max-w-none whitespace-pre-wrap">
               {isZh ? current.content_zh : current.content_en}
             </div>
