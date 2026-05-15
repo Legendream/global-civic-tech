@@ -127,6 +127,7 @@ async function main() {
 
       for (const item of feed.items.slice(0, 20)) {
         if (!item.link || !item.title) continue;
+        const snippet = (item.contentSnippet ?? item.content ?? "").slice(0, 800) || null;
         inserts.push({
           title_original: item.title,
           url: item.link,
@@ -136,6 +137,7 @@ async function main() {
           tags: source.tags,
           language_original: source.language,
           published_at: item.pubDate ?? item.isoDate ?? null,
+          content_snippet: snippet,
           processed: false,
         });
       }
