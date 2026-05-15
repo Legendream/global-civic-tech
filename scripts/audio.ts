@@ -77,7 +77,13 @@ async function main() {
     return;
   }
 
-  const mp3 = await textToSpeech(digest.content_zh);
+  let mp3: Buffer;
+  try {
+    mp3 = await textToSpeech(digest.content_zh);
+  } catch (err) {
+    console.warn("TTS failed, skipping audio:", (err as Error).message);
+    return;
+  }
 
   const filename = `digest-${targetDate}.mp3`;
   const { error: uploadError } = await supabase.storage
