@@ -3,7 +3,7 @@
  * 執行：npx tsx scripts/fetch.ts
  */
 
-process.loadEnvFile?.(".env.local");
+try { process.loadEnvFile?.(".env.local"); } catch {}
 import RSSParser from "rss-parser";
 import { createClient } from "@supabase/supabase-js";
 
