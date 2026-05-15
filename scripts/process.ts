@@ -107,11 +107,8 @@ async function main() {
     try {
       console.log(`  → ${article.title_original.slice(0, 60)}...`);
 
-      // Translate title to Chinese (if not already Chinese)
-      const titleZh =
-        article.language_original === "zh"
-          ? article.title_original
-          : await translateWithDeepL(article.title_original, "ZH-HANT");
+      // Always translate to ZH-HANT so DeepL converts Simplified → Traditional
+      const titleZh = await translateWithDeepL(article.title_original, "ZH-HANT");
 
       const titleEn =
         article.language_original === "en"

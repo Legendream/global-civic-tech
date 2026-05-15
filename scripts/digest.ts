@@ -43,19 +43,19 @@ async function generateDigest(
     .join("\n\n");
 
   const prompt = isZh
-    ? `你是公民科技研究員。以下是今天的 ${articles.length} 則全球公民科技新聞，請生成一份精簡的每日摘要報告（繁體中文），包含：
-1. 開頭一句話總結今日亮點
-2. 依地區分組呈現各則新聞（標題 + 一行摘要）
-3. 結尾一句趨勢觀察
+    ? `你是公民科技研究員。以下是今天的 ${articles.length} 則全球公民科技新聞，請用繁體中文生成一份每日摘要報告，包含：
+1. 開頭段落（2-3句）總結今日整體亮點與趨勢
+2. 依地區分組呈現各則新聞，每則新聞寫：標題、2-3句說明（這是什麼專案或政策、解決什麼問題、有何意義）
+3. 結尾段落（2-3句）觀察今日全球公民科技發展方向
 
 文章列表：
 ${articleList}
 
-報告請使用純文字，不要 Markdown 標記。`
-    : `You are a civic tech researcher. Here are today's ${articles.length} global civic tech news items. Please generate a concise daily digest in English including:
-1. A one-sentence highlight of today's key developments
-2. News grouped by region (title + one-line summary each)
-3. A closing trend observation
+報告請使用純文字，不要 Markdown 標記，必須使用繁體中文。`
+    : `You are a civic tech researcher. Here are today's ${articles.length} global civic tech news items. Generate a daily digest in English including:
+1. An opening paragraph (2-3 sentences) summarizing today's highlights and trends
+2. News grouped by region; for each item write the title and 2-3 sentences explaining what the project or policy is, what problem it solves, and why it matters
+3. A closing paragraph (2-3 sentences) on today's broader civic tech directions
 
 Articles:
 ${articleList}
@@ -64,7 +64,7 @@ Use plain text, no Markdown.`;
 
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 1500,
+    max_tokens: 3000,
     messages: [{ role: "user", content: prompt }],
   });
 
