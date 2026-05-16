@@ -167,7 +167,7 @@ scripts/digest.ts
 
 ---
 
-## 目前狀態（2026-05-14）
+## 目前狀態（2026-05-16）
 
 ### 已完成
 - [x] Next.js 16 專案初始化（TypeScript、Tailwind、next-intl 雙語）
@@ -192,6 +192,11 @@ scripts/digest.ts
 - [x] Vercel 部署成功：https://global-civic-tech.vercel.app
 - [x] `supabase/schema.sql` 補上明確 GRANT（anon SELECT、service_role 全權限），因應 Supabase 2026 Data API 預設變更
 - [x] GitHub Actions CI 修復：Node.js 20 → 24，解決 npm 10/11 對 `@swc/helpers` 版本解析不一致導致 `npm ci` 失敗的問題
+- [x] `articles` 表新增 `content_snippet TEXT`、`content_snippet_zh TEXT` 欄位（修復 PR #2 遺漏導致 workflow 整體失敗的問題）
+- [x] `scripts/process.ts`：翻譯 `content_snippet` → `content_snippet_zh`（DeepL ZH-HANT）
+- [x] `ArticleCard.tsx`：改為顯示 RSS 原文片段（zh 語系顯示 `content_snippet_zh`，en 顯示 `content_snippet`），無片段時退回 Claude 摘要
+- [x] GitHub Actions `BATCH_SIZE` 從 30 調整為 150，支援單次處理更多文章
+- [x] `daily_digests` 表新增 `audio_url TEXT` 欄位（`scripts/audio.ts` 所需）
 
 ### 待完成
 - [ ] Vercel 環境變數確認並補設（`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`），重新部署後確認首頁有資料
