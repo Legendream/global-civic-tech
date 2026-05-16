@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS articles (
   tags TEXT[] DEFAULT '{}',
   language_original TEXT DEFAULT 'en',
   published_at TIMESTAMPTZ,
+  content_snippet TEXT,
   processed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

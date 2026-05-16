@@ -24,6 +24,7 @@ export default function ArticleCard({
 
   const title = isZh ? (article.title_zh ?? article.title_original) : (article.title_en ?? article.title_original);
   const summary = isZh ? article.summary_zh : article.summary_en;
+  const preview = article.content_snippet ?? summary;
   const flag = article.country_code ? FLAG_EMOJI[article.country_code] ?? "🌐" : "🌐";
   const date = article.published_at
     ? new Date(article.published_at).toLocaleDateString(isZh ? "zh-TW" : "en-US", {
@@ -65,9 +66,9 @@ export default function ArticleCard({
         <h3 className="font-semibold text-zinc-900 text-sm leading-snug line-clamp-2 mb-1.5">
           {title}
         </h3>
-        {summary && (
+        {preview && (
           <p className="text-zinc-500 text-xs leading-relaxed line-clamp-4">
-            {summary}
+            {preview}
           </p>
         )}
       </div>

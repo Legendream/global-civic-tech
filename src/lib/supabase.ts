@@ -14,6 +14,7 @@ export type Article = {
   tags: string[];
   language_original: string;
   published_at: string | null;
+  content_snippet: string | null;
   created_at: string;
   processed: boolean;
 };

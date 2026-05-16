@@ -37,7 +37,7 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          BATCH_SIZE: "30"
+          BATCH_SIZE: "150"
 
       - name: Generate daily digest
         run: npx tsx scripts/digest.ts
