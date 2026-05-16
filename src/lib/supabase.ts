@@ -15,6 +15,7 @@ export type Article = {
   language_original: string;
   published_at: string | null;
   content_snippet: string | null;
+  content_snippet_zh: string | null;
   created_at: string;
   processed: boolean;
 };

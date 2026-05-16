@@ -118,6 +118,10 @@ async function main() {
           ? article.title_original
           : await translateWithDeepL(article.title_original, "EN-US");
 
+      const contentSnippetZh = article.content_snippet
+        ? await translateWithDeepL(article.content_snippet, "ZH-HANT")
+        : null;
+
       // Summarize with Claude
       const { summary_zh, summary_en, tags } = await summarizeWithClaude(
         titleZh,
@@ -133,6 +137,7 @@ async function main() {
           summary_zh,
           summary_en,
           tags,
+          content_snippet_zh: contentSnippetZh,
           processed: true,
         })
         .eq("id", article.id);

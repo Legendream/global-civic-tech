@@ -24,7 +24,9 @@ export default function ArticleCard({
 
   const title = isZh ? (article.title_zh ?? article.title_original) : (article.title_en ?? article.title_original);
   const summary = isZh ? article.summary_zh : article.summary_en;
-  const preview = article.content_snippet ?? summary;
+  const preview = isZh
+    ? (article.content_snippet_zh ?? article.content_snippet ?? summary)
+    : (article.content_snippet ?? summary);
   const flag = article.country_code ? FLAG_EMOJI[article.country_code] ?? "🌐" : "🌐";
   const date = article.published_at
     ? new Date(article.published_at).toLocaleDateString(isZh ? "zh-TW" : "en-US", {

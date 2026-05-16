@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS articles (
   language_original TEXT DEFAULT 'en',
   published_at TIMESTAMPTZ,
   content_snippet TEXT,
+  content_snippet_zh TEXT,
   processed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
