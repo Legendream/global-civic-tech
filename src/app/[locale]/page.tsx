@@ -16,6 +16,17 @@ async function getTodayDigest(): Promise<DailyDigest | null> {
   return data;
 }
 
+async function getTodayArticles(date: string): Promise<Article[]> {
+  const { data } = await supabase
+    .from("articles")
+    .select("*")
+    .eq("processed", true)
+    .gte("created_at", `${date}T00:00:00.000Z`)
+    .lte("created_at", `${date}T23:59:59.999Z`)
+    .order("published_at", { ascending: false });
+  return data ?? [];
+}
+
 async function getRecentArticles(): Promise<Article[]> {
   const { data } = await supabase
     .from("articles")
@@ -34,7 +45,11 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("home");
-  const [digest, articles] = await Promise.all([getTodayDigest(), getRecentArticles()]);
+  const today = new Date().toISOString().split("T")[0];
+  const digest = await getTodayDigest();
+  const articles = digest
+    ? await getTodayArticles(today)
+    : await getRecentArticles();
   const isZh = locale === "zh";
 
   return (
@@ -77,10 +92,17 @@ export default async function HomePage({
         )}
       </section>
 
-      {/* Recent cases */}
+      {/* Today's / Recent cases */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-zinc-800">{t("recentCases")}</h2>
+          <h2 className="text-base font-semibold text-zinc-800">
+            {digest ? t("todayCases") : t("recentCases")}
+            {digest && articles.length > 0 && (
+              <span className="ml-2 text-sm font-normal text-zinc-400">
+                · {articles.length} {isZh ? "則" : "cases"}
+              </span>
+            )}
+          </h2>
           <Link
             href={`/${locale}/cases`}
             className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors"
