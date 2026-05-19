@@ -16,7 +16,8 @@
     "subtitle": "Daily civic tech news from around the world, automatically curated",
     "todayDigest": "Today's Digest",
     "noDigest": "Today's digest has not been generated yet",
-    "recentCases": "Recent Cases",
+    "todayCases": "Articles in Today's Digest",
+    "recentCases": "Recent Articles",
     "viewAll": "View All",
     "source": "Source",
     "readMore": "Read Original",
@@ -26,17 +27,17 @@
   "digest": {
     "title": "Digest Archive",
     "selectDate": "Select date",
-    "articles": "cases",
+    "articles": "articles",
     "noData": "No data for this date",
     "audioDigest": "Audio Digest",
     "audioHint": "Traditional Chinese · Taiwanese accent"
   },
   "cases": {
-    "title": "All Cases",
+    "title": "All Articles",
     "filterCountry": "Country / Region",
     "filterTag": "Tag",
     "filterAll": "All",
-    "noResults": "No matching cases",
+    "noResults": "No matching articles",
     "source": "Source",
     "publishedAt": "Published",
     "searchPlaceholder": "Search title, summary…",
@@ -52,7 +53,12 @@
     "title": "Saved Articles",
     "subtitle": "Your reading inspiration for blog writing",
     "empty": "No bookmarks yet",
-    "emptyHint": "Click the bookmark icon on any article card to save it here"
+    "emptyHint": "Click the bookmark icon on any article card to save it here",
+    "noticeTitle": "Bookmarks are saved in this browser only — they won't sync across devices",
+    "noticeBody": "If you switch devices, browsers, or clear your browser data, your bookmarks will be lost.",
+    "noticeTip": "We recommend exporting a backup regularly and saving it to cloud storage (Google Drive, iCloud, etc.). To restore on another device, simply import the file.",
+    "exportBtn": "Export backup",
+    "importBtn": "Import / restore"
   },
   "about": {
     "title": "About This Site",

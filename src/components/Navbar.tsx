@@ -14,7 +14,6 @@ export default function Navbar() {
   const links = [
     { href: `/${locale}`, label: t("home") },
     { href: `/${locale}/digest`, label: t("digest") },
-    { href: `/${locale}/cases`, label: t("cases") },
     { href: `/${locale}/map`, label: t("map") },
     { href: `/${locale}/bookmarks`, label: t("bookmarks"), badge: count > 0 ? count : null },
     { href: `/${locale}/about`, label: t("about") },

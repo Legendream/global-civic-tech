@@ -16,7 +16,8 @@
     "subtitle": "每日自動彙整全球公民科技最新消息，繁體中文呈現",
     "todayDigest": "今日摘要",
     "noDigest": "今日摘要尚未生成",
-    "recentCases": "最新案例",
+    "todayCases": "今日收錄報導",
+    "recentCases": "最新報導",
     "viewAll": "查看全部",
     "source": "來源",
     "readMore": "閱讀原文",
@@ -26,17 +27,17 @@
   "digest": {
     "title": "歷史報告",
     "selectDate": "選擇日期",
-    "articles": "則案例",
+    "articles": "則報導",
     "noData": "該日期無資料",
     "audioDigest": "語音摘要",
     "audioHint": "繁體中文・台灣口音"
   },
   "cases": {
-    "title": "全部案例",
+    "title": "全部報導",
     "filterCountry": "國家 / 地區",
     "filterTag": "標籤",
     "filterAll": "全部",
-    "noResults": "無符合條件的案例",
+    "noResults": "無符合條件的報導",
     "source": "來源",
     "publishedAt": "發布日期",
     "searchPlaceholder": "搜尋標題、摘要…",
@@ -52,7 +53,12 @@
     "title": "靈感庫",
     "subtitle": "收藏感興趣的文章，作為寫作靈感來源",
     "empty": "靈感庫是空的",
-    "emptyHint": "在案例列表中點擊書籤圖示，將感興趣的文章加入靈感庫"
+    "emptyHint": "在案例列表中點擊書籤圖示，將感興趣的文章加入靈感庫",
+    "noticeTitle": "靈感庫儲存在這個瀏覽器，不會自動跨裝置同步",
+    "noticeBody": "換裝置、換瀏覽器或清除瀏覽器資料後，靈感庫內容將會消失。",
+    "noticeTip": "建議定期點擊「匯出備份」，將檔案存到雲端（Google Drive、iCloud 等）。換裝置時再用「匯入還原」即可。",
+    "exportBtn": "匯出備份",
+    "importBtn": "匯入還原"
   },
   "about": {
     "title": "關於這個網站",
