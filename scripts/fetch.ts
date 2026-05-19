@@ -70,6 +70,46 @@ const SOURCES: FeedSource[] = [
     language: "en",
     tags: ["public-service", "transparency", "civic-tech"],
   },
+  {
+    name: "Government Technology",
+    url: "https://www.govtech.com/rss.rss",
+    country: "United States",
+    country_code: "US",
+    language: "en",
+    tags: ["govtech", "public-service", "civic-tech"],
+  },
+  {
+    name: "StateScoop",
+    url: "https://statescoop.com/feed/",
+    country: "United States",
+    country_code: "US",
+    language: "en",
+    tags: ["govtech", "public-service", "open-data"],
+  },
+  {
+    name: "FedScoop",
+    url: "https://fedscoop.com/feed/",
+    country: "United States",
+    country_code: "US",
+    language: "en",
+    tags: ["govtech", "public-service", "ai-governance"],
+  },
+  {
+    name: "The GovLab",
+    url: "https://blog.thegovlab.org/feed",
+    country: "International",
+    country_code: null,
+    language: "en",
+    tags: ["civic-tech", "open-data", "e-participation"],
+  },
+  {
+    name: "Endstate",
+    url: "https://endstate.substack.com/feed",
+    country: "International",
+    country_code: null,
+    language: "en",
+    tags: ["civic-tech", "public-service", "digital-rights"],
+  },
 ];
 
 // GitHub Topics API for civic-tech repos updated recently
