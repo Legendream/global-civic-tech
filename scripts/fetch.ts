@@ -23,14 +23,6 @@ type FeedSource = {
 
 const SOURCES: FeedSource[] = [
   {
-    name: "Code for All",
-    url: "https://codeforall.org/feed/",
-    country: "International",
-    country_code: null,
-    language: "en",
-    tags: ["civic-tech", "international"],
-  },
-  {
     name: "mySociety",
     url: "https://www.mysociety.org/feed/",
     country: "United Kingdom",
@@ -45,14 +37,6 @@ const SOURCES: FeedSource[] = [
     country_code: "US",
     language: "en",
     tags: ["civic-tech", "us", "government"],
-  },
-  {
-    name: "Nesta",
-    url: "https://www.nesta.org.uk/feed/",
-    country: "United Kingdom",
-    country_code: "GB",
-    language: "en",
-    tags: ["civic-tech", "innovation", "uk"],
   },
   {
     name: "GovTech Review",
@@ -162,8 +146,8 @@ async function main() {
     return;
   }
 
-  // Upsert by URL to avoid duplicates
-  const { error, count } = await supabase
+  // Upsert by URL to avoid duplicates; ignoreDuplicates=true skips existing rows
+  const { data: inserted, error } = await supabase
     .from("articles")
     .upsert(inserts, { onConflict: "url", ignoreDuplicates: true })
     .select("id");
@@ -173,7 +157,8 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`\nDone. Inserted/upserted ${count ?? inserts.length} articles.`);
+  const newCount = inserted?.length ?? 0;
+  console.log(`\nDone. ${newCount} new articles inserted (${inserts.length} fetched, ${inserts.length - newCount} already existed).`);
 }
 
 main();
