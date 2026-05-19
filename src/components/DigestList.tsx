@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { type DailyDigest } from "@/lib/supabase";
+import AudioPlayer from "./AudioPlayer";
 
 export default function DigestList({
   digests,
@@ -51,20 +52,11 @@ export default function DigestList({
         <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
           {/* Audio player */}
           {current.audio_url && (
-            <div className="px-6 pt-5 pb-4 border-b border-zinc-100 bg-indigo-50">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className="w-4 h-4 ml-0.5">
-                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-indigo-900">{t("audioDigest")}</p>
-                  <p className="text-xs text-indigo-500">{t("audioHint")}</p>
-                </div>
-              </div>
-              <audio controls className="w-full h-9" src={current.audio_url} />
-            </div>
+            <AudioPlayer
+              src={current.audio_url}
+              title={t("audioDigest")}
+              hint={t("audioHint")}
+            />
           )}
 
           {/* Text content */}

@@ -8,7 +8,8 @@
     "digest": "Archive",
     "cases": "Cases",
     "map": "World Map",
-    "bookmarks": "Saved"
+    "bookmarks": "Saved",
+    "about": "About"
   },
   "home": {
     "title": "Global Civic Tech Watch",
@@ -52,6 +53,35 @@
     "subtitle": "Your reading inspiration for blog writing",
     "empty": "No bookmarks yet",
     "emptyHint": "Click the bookmark icon on any article card to save it here"
+  },
+  "about": {
+    "title": "About This Site",
+    "intro": "A personal civic tech knowledge base built by Claire, open to the public. Every day it automatically collects articles from 17 global media outlets and research organisations, translates them via AI, and presents daily summaries in Traditional Chinese.",
+    "jtbdTitle": "What problems does this site solve?",
+    "labelWhen": "When",
+    "labelWant": "I want to",
+    "labelSo": "So I can",
+    "job1When": "I want to follow global civic tech developments, but don't have time to read a dozen English-language sources every day",
+    "job1Want": "spend five minutes each morning reading today's digest and staying on top of key global developments",
+    "job1So": "efficiently maintain awareness of global civic tech trends without missing important news due to language barriers",
+    "job2When": "I'm writing a newsletter or article and need international case studies to support my points",
+    "job2Want": "quickly search for cases by country or topic and find compelling international examples",
+    "job2So": "produce more substantive writing while saving time that would otherwise be spent searching raw sources",
+    "job3When": "I'm planning a civic tech project or policy proposal and want to understand what other countries are doing",
+    "job3Want": "browse cases by region and topic using the map and tag filters",
+    "job3So": "discover innovative practices I wouldn't otherwise know about, and use them as inspiration",
+    "howTitle": "How is the data generated?",
+    "step1": "Every day at 08:00 (Taiwan time), articles are automatically fetched from 17 RSS sources",
+    "step2": "DeepL API translates titles and content snippets into Traditional Chinese",
+    "step3": "Claude AI generates Chinese and English summaries and assigns topic tags",
+    "step4": "Articles are compiled into a daily digest report, with an audio version generated",
+    "sourcesTitle": "Data Sources",
+    "sourcesDesc": "Currently tracking 17 media outlets and research organisations from the UK, US, Australia, and international bodies — updated daily.",
+    "colSource": "Source",
+    "colCountry": "Country / Region",
+    "colTopic": "Topics",
+    "updateTitle": "Update Schedule",
+    "updateDesc": "Automatically updated every day at 08:00 Taiwan time (scheduled via GitHub Actions). The database stores only AI-translated summaries; please visit the original source websites to read full articles."
   },
   "footer": {
     "description": "Tracking global civic tech developments, updated daily",
