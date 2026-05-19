@@ -17,6 +17,7 @@ export default function Navbar() {
     { href: `/${locale}/cases`, label: t("cases") },
     { href: `/${locale}/map`, label: t("map") },
     { href: `/${locale}/bookmarks`, label: t("bookmarks"), badge: count > 0 ? count : null },
+    { href: `/${locale}/about`, label: t("about") },
   ];
 
   const otherLocale = locale === "zh" ? "en" : "zh";
