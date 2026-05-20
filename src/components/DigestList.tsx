@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { type DailyDigest } from "@/lib/supabase";
+import AudioPlayer from "@/components/AudioPlayer";
 
 export default function DigestList({
   digests,
@@ -63,7 +64,7 @@ export default function DigestList({
                   <p className="text-xs text-indigo-500">{t("audioHint")}</p>
                 </div>
               </div>
-              <audio controls className="w-full h-9" src={current.audio_url} />
+              <AudioPlayer src={current.audio_url} />
             </div>
           )}
 

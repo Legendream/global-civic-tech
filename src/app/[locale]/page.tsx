@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { getTranslations } from "next-intl/server";
 import { supabase, type Article, type DailyDigest } from "@/lib/supabase";
 import ArticleCard from "@/components/ArticleCard";
+import AudioPlayer from "@/components/AudioPlayer";
 import Link from "next/link";
 
 async function getTodayDigest(): Promise<DailyDigest | null> {
@@ -63,7 +64,7 @@ export default async function HomePage({
                     <p className="text-xs text-indigo-500">{t("audioHint")}</p>
                   </div>
                 </div>
-                <audio controls className="w-full h-9" src={digest.audio_url} />
+                <AudioPlayer src={digest.audio_url} />
               </div>
             )}
 
