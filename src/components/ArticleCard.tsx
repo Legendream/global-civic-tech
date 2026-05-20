@@ -21,6 +21,7 @@ export default function ArticleCard({
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const bookmarked = isBookmarked(article.id);
   const isZh = locale === "zh";
+  const isProject = article.source === "GitHub";
 
   const title = isZh ? (article.title_zh ?? article.title_original) : (article.title_en ?? article.title_original);
   const summary = isZh ? article.summary_zh : article.summary_en;
@@ -41,6 +42,13 @@ export default function ArticleCard({
           <span className="text-base leading-none shrink-0">{flag}</span>
           <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full truncate">
             {article.source}
+          </span>
+          <span
+            className={`shrink-0 text-xs px-2 py-0.5 rounded-full ${
+              isProject ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
+            }`}
+          >
+            {isProject ? (isZh ? "專案" : "Project") : (isZh ? "報導" : "Article")}
           </span>
         </div>
         <button
