@@ -142,12 +142,15 @@ async function main() {
     .from(BUCKET)
     .getPublicUrl(filename);
 
+  // 加上版本參數，讓每次重新生成都是全新網址，避免瀏覽器／CDN 沿用舊快取
+  const versionedUrl = `${publicUrl}?v=${Date.now()}`;
+
   await supabase
     .from("daily_digests")
-    .update({ audio_url: publicUrl })
+    .update({ audio_url: versionedUrl })
     .eq("date", targetDate);
 
-  console.log(`Audio saved: ${publicUrl}`);
+  console.log(`Audio saved: ${versionedUrl}`);
 
   await deleteOldFiles();
 }
