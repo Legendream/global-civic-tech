@@ -136,7 +136,7 @@ const SOURCES: FeedSource[] = [
   },
 ];
 
-// GitHub Topics API for civic-tech repos updated recently
+// GitHub Topics API for civic-tech / govtech / open-data repos updated recently
 async function fetchGitHubRepos() {
   const token = process.env.GITHUB_TOKEN;
   const headers: Record<string, string> = {
@@ -145,7 +145,7 @@ async function fetchGitHubRepos() {
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(
-    "https://api.github.com/search/repositories?q=topic:civic-tech+OR+topic:govtech+pushed:>2020-01-01&sort=updated&per_page=20",
+    "https://api.github.com/search/repositories?q=topic:civic-tech+OR+topic:govtech+OR+topic:open-data+pushed:>2020-01-01&sort=updated&per_page=20",
     { headers }
   );
   if (!res.ok) return [];
