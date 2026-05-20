@@ -18,6 +18,7 @@ export default function CasesClient({
 }) {
   const t = useTranslations("cases");
   const isZh = locale === "zh";
+  const [type, setType] = useState<string>("all");
   const [country, setCountry] = useState<string>("all");
   const [tag, setTag] = useState<string>("all");
   const [query, setQuery] = useState("");
@@ -25,6 +26,10 @@ export default function CasesClient({
   const filtered = useMemo(
     () =>
       articles.filter((a) => {
+        if (type !== "all") {
+          const isProject = a.source === "GitHub";
+          if (type === "project" ? !isProject : isProject) return false;
+        }
         if (country !== "all" && a.country !== country) return false;
         if (tag !== "all" && !a.tags.includes(tag)) return false;
         if (query) {
@@ -40,10 +45,10 @@ export default function CasesClient({
         }
         return true;
       }),
-    [articles, country, tag, query, isZh]
+    [articles, type, country, tag, query, isZh]
   );
 
-  const hasActiveFilter = country !== "all" || tag !== "all" || query !== "";
+  const hasActiveFilter = type !== "all" || country !== "all" || tag !== "all" || query !== "";
 
   return (
     <div className="space-y-6">
@@ -76,6 +81,30 @@ export default function CasesClient({
             </svg>
           </button>
         )}
+      </div>
+
+      {/* Type chips */}
+      <div>
+        <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">{t("filterType")}</p>
+        <div className="flex gap-2 flex-wrap">
+          {[
+            { key: "all", label: t("filterAll") },
+            { key: "project", label: t("typeProject") },
+            { key: "article", label: t("typeArticle") },
+          ].map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => setType(opt.key)}
+              className={`px-3 py-1.5 rounded-full text-sm transition-colors cursor-pointer ${
+                type === opt.key
+                  ? "bg-indigo-600 text-white font-medium"
+                  : "bg-white border border-zinc-200 text-zinc-600 hover:border-indigo-300 hover:text-indigo-600"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Country chips */}
@@ -125,7 +154,7 @@ export default function CasesClient({
         </span>
         {hasActiveFilter && (
           <button
-            onClick={() => { setCountry("all"); setTag("all"); setQuery(""); }}
+            onClick={() => { setType("all"); setCountry("all"); setTag("all"); setQuery(""); }}
             className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors cursor-pointer"
           >
             {isZh ? "清除篩選" : "Clear filters"}
