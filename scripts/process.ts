@@ -48,7 +48,7 @@ async function summarizeWithClaude(
   titleZh: string,
   contentHint: string,
   contentSnippet: string | null
-): Promise<{ summary_zh: string; summary_en: string; tags: string[] }> {
+): Promise<{ summary_zh: string; tags: string[] }> {
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 800,
@@ -57,8 +57,7 @@ async function summarizeWithClaude(
         role: "user",
         content: `你是公民科技研究助理。請根據以下資料，生成：
 1. 繁體中文摘要（100至150字，必須使用繁體中文，說明這是什麼專案或政策、解決什麼問題、在哪個國家/地區、有何重要意義）
-2. 英文摘要（80 to 120 words）
-3. 從以下清單中選擇 2-4 個最符合的標籤（只能從清單中選，不可自創）：
+2. 從以下清單中選擇 2-4 個最符合的標籤（只能從清單中選，不可自創）：
    open-data, transparency, e-participation, ai-governance, election, environment, anti-corruption, accessibility, open-source, digital-rights, public-service, civic-tech
 
 文章標題：${titleZh}
@@ -66,7 +65,7 @@ ${contentSnippet ? `文章內容摘錄：${contentSnippet}` : ""}
 ${contentHint ? `補充：${contentHint}` : ""}
 
 請用以下 JSON 格式回覆（不要有其他文字）：
-{"summary_zh": "...", "summary_en": "...", "tags": ["tag1", "tag2"]}`,
+{"summary_zh": "...", "tags": ["tag1", "tag2"]}`,
       },
     ],
   });
@@ -78,7 +77,6 @@ ${contentHint ? `補充：${contentHint}` : ""}
     // Fallback if JSON parse fails
     return {
       summary_zh: titleZh,
-      summary_en: contentHint || titleZh,
       tags: ["civic-tech"],
     };
   }
@@ -123,7 +121,7 @@ async function main() {
         : null;
 
       // Summarize with Claude
-      const { summary_zh, summary_en, tags } = await summarizeWithClaude(
+      const { summary_zh, tags } = await summarizeWithClaude(
         titleZh,
         `Source: ${article.source}, Country: ${article.country ?? "Unknown"}`,
         article.content_snippet ?? null
@@ -135,7 +133,6 @@ async function main() {
           title_zh: titleZh,
           title_en: titleEn,
           summary_zh,
-          summary_en,
           tags,
           content_snippet_zh: contentSnippetZh,
           processed: true,

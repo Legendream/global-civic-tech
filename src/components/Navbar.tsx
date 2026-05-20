@@ -19,9 +19,6 @@ export default function Navbar() {
     { href: `/${locale}/about`, label: t("about") },
   ];
 
-  const otherLocale = locale === "zh" ? "en" : "zh";
-  const otherLocalePath = pathname.replace(`/${locale}`, `/${otherLocale}`);
-
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-zinc-100">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
@@ -57,13 +54,6 @@ export default function Navbar() {
               </Link>
             );
           })}
-
-          <Link
-            href={otherLocalePath}
-            className="ml-2 px-3 py-1.5 rounded-lg text-sm border border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 transition-colors shrink-0"
-          >
-            {otherLocale === "zh" ? "中文" : "EN"}
-          </Link>
         </nav>
       </div>
     </header>

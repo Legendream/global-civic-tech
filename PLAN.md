@@ -5,7 +5,7 @@
 Claire 的個人公民科技知識庫工具，同時作為公開網站。  
 每日自動從全球來源抓取公民科技文章，以 DeepL 翻譯、Claude API 生成繁中摘要，再以 OpenAI TTS 產生當日語音報告，供 Claire 閱讀後手動挑選素材整理電子報（電子報發送由另外系統處理）。
 
-**公開內容**：網站（繁中 / English 雙語）+ Source code on GitHub  
+**公開內容**：網站（繁體中文）+ Source code on GitHub  
 **保護內容**：API keys 存 GitHub Secrets，Supabase RLS 限制公眾只能讀取
 
 ---
@@ -15,7 +15,7 @@ Claire 的個人公民科技知識庫工具，同時作為公開網站。
 | 層級 | 工具 | 說明 |
 |------|------|------|
 | 框架 | Next.js 16.2.2 + TypeScript + Tailwind | App Router，`src/proxy.ts` 取代舊版 `middleware.ts` |
-| 國際化 | next-intl 4.x | 雙語路由 `/zh/...` 和 `/en/...`，預設 `/zh` |
+| 國際化 | next-intl 4.x | 路由 `/zh/...`，目前僅啟用繁體中文（英文已停用） |
 | 資料庫 | Supabase（PostgreSQL） | 公眾 read-only，寫入只有 service role |
 | 翻譯 | DeepL API | 免費 50 萬字/月，key 結尾 `:fx` 為免費版 |
 | 摘要 | Anthropic Claude API (claude-haiku-4-5-20251001) | 翻譯後再摘要，月費約 $1–3 |
@@ -46,7 +46,7 @@ global-civic-tech/
 │   │       └── about/page.tsx          ← 關於頁（JTBD 說明 + 資料來源）
 │   │
 │   ├── components/
-│   │   ├── Navbar.tsx                  ← 導覽列 + 語言切換 + 收藏數徽章（client）
+│   │   ├── Navbar.tsx                  ← 導覽列 + 收藏數徽章（client）
 │   │   ├── Footer.tsx                  ← Footer
 │   │   ├── ArticleCard.tsx             ← 單篇報導卡片 + 收藏鈕 + 專案/報導類型標籤
 │   │   ├── DigestList.tsx              ← 報告頁主元件：日期分頁 + 搜尋分頁（類型/國家/標籤/關鍵字篩選）
@@ -55,7 +55,7 @@ global-civic-tech/
 │   │   └── MapClient.tsx               ← Leaflet 地圖，點擊顯示各國案例（client）
 │   │
 │   ├── i18n/
-│   │   ├── routing.ts                  ← locales: ["zh", "en"], defaultLocale: "zh"
+│   │   ├── routing.ts                  ← locales: ["zh"]（英文已停用，en.json 保留未啟用）
 │   │   └── request.ts                  ← getRequestConfig，載入 messages
 │   │
 │   ├── lib/
@@ -75,7 +75,7 @@ global-civic-tech/
 │
 ├── messages/
 │   ├── zh.json                         ← 繁體中文 UI 字串
-│   └── en.json                         ← English UI 字串
+│   └── en.json                         ← English UI 字串（保留未啟用）
 │
 ├── .github/
 │   └── workflows/
@@ -98,7 +98,7 @@ global-civic-tech/
 | title_zh | TEXT | 繁中標題（DeepL） |
 | title_en | TEXT | 英文標題 |
 | summary_zh | TEXT | 繁中摘要（Claude） |
-| summary_en | TEXT | 英文摘要（Claude） |
+| summary_en | TEXT | 英文摘要（英文已停用，新文章不再生成） |
 | url | TEXT UNIQUE | 原文網址（去重用） |
 | source | TEXT | 來源名稱（e.g. mySociety；`GitHub` 視為「專案」） |
 | country | TEXT | 國家名稱（顯示用） |
@@ -117,7 +117,7 @@ global-civic-tech/
 | id | UUID | PK |
 | date | DATE UNIQUE | 報告日期 |
 | content_zh | TEXT | 繁中每日摘要（純文字） |
-| content_en | TEXT | 英文每日摘要 |
+| content_en | TEXT | 英文每日摘要（英文已停用，現寫入空字串） |
 | article_count | INTEGER | 當日案例數 |
 | audio_url | TEXT | 語音 mp3 公開網址（含 `?v=` 版本參數） |
 | created_at | TIMESTAMPTZ | 建立時間 |
@@ -135,13 +135,13 @@ scripts/fetch.ts
   ↓
 scripts/process.ts
   取出 processed = false 的文章（批次 BATCH_SIZE=150）
-  DeepL API → title_zh / title_en / content_snippet_zh
-  Claude API → summary_zh / summary_en / tags
+  DeepL API → title_zh / content_snippet_zh（title_en 直接沿用英文原標題）
+  Claude API → summary_zh / tags
   更新 processed = true
   ↓
 scripts/digest.ts
   取出今日 processed = true 的文章
-  Claude API → 繁中 + 英文每日摘要報告
+  Claude API → 繁中每日摘要報告
   upsert 進 daily_digests
   ↓
 scripts/audio.ts
@@ -186,7 +186,7 @@ scripts/audio.ts
 ## 目前狀態（2026-05-20）
 
 ### 已完成
-- [x] Next.js 16 專案、Supabase schema、雙語前端、四階段資料管道（fetch / process / digest / audio）
+- [x] Next.js 16 專案、Supabase schema、繁中前端、四階段資料管道（fetch / process / digest / audio）
 - [x] 前端頁面：首頁、報告頁（按日期 / 搜尋全部雙分頁）、地圖、靈感庫、關於頁
 - [x] 報導卡片：收藏功能（localStorage）+ 專案/報導類型標籤
 - [x] 報告頁搜尋分頁：依類型、國家、標籤、關鍵字篩選
@@ -196,6 +196,7 @@ scripts/audio.ts
 - [x] RSS 來源擴充至 23 個（含非洲、日本、印度、新加坡等區域型來源）
 - [x] GitHub 專案搜尋加入 `open-data` topic
 - [x] `layout.tsx` 設定 `metadataBase` 指向自訂網域
+- [x] 停用英文版：網站改為純繁體中文，`digest.ts` / `process.ts` 不再生成英文文字（省下 Claude token）
 - [x] GitHub Actions 每日排程、GitHub Secrets、Vercel 部署、Supabase RLS + GRANT 均已設定
 - [x] GitHub repo：https://github.com/Legendream/global-civic-tech
 - [x] Vercel 部署：https://global-civic-tech.vercel.app（自訂網域 civictech.claire-cheng.com）
