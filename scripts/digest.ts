@@ -64,7 +64,7 @@ Use plain text, no Markdown.`;
 
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 3000,
+    max_tokens: 8000,
     messages: [{ role: "user", content: prompt }],
   });
 
@@ -97,10 +97,7 @@ async function main() {
 
   console.log(`Found ${articles.length} articles. Generating digests...`);
 
-  const [content_zh, content_en] = await Promise.all([
-    generateDigest(articles, "zh"),
-    generateDigest(articles, "en"),
-  ]);
+  const content_zh = await generateDigest(articles, "zh");
 
   const { error: upsertError } = await supabase
     .from("daily_digests")
@@ -108,7 +105,8 @@ async function main() {
       {
         date: targetDate,
         content_zh,
-        content_en,
+        // 網站已停用英文版，不再生成英文摘要。content_en 欄位為 NOT NULL，寫入空字串即可
+        content_en: "",
         article_count: articles.length,
       },
       { onConflict: "date" }

@@ -158,9 +158,57 @@ const SOURCES: FeedSource[] = [
     language: "en",
     tags: ["public-service", "open-data", "civic-tech"],
   },
+  {
+    name: "Code for Africa",
+    url: "https://medium.com/feed/code-for-africa",
+    country: "Africa",
+    country_code: null,
+    language: "en",
+    tags: ["civic-tech", "africa", "data-journalism"],
+  },
+  {
+    name: "Code for Japan",
+    url: "https://medium.com/feed/code-for-japan",
+    country: "Japan",
+    country_code: "JP",
+    language: "en",
+    tags: ["civic-tech", "japan", "open-data"],
+  },
+  {
+    name: "CivicDataLab",
+    url: "https://medium.com/feed/civicdatalab",
+    country: "India",
+    country_code: "IN",
+    language: "en",
+    tags: ["civic-tech", "india", "open-data"],
+  },
+  {
+    name: "GovTech Singapore",
+    url: "https://medium.com/feed/singapore-gds",
+    country: "Singapore",
+    country_code: "SG",
+    language: "en",
+    tags: ["govtech", "singapore", "public-service"],
+  },
+  {
+    name: "Open Knowledge Foundation",
+    url: "https://blog.okfn.org/feed/",
+    country: "International",
+    country_code: null,
+    language: "en",
+    tags: ["open-data", "open-knowledge", "transparency"],
+  },
+  {
+    name: "Global Voices Advox",
+    url: "https://advox.globalvoices.org/feed/",
+    country: "International",
+    country_code: null,
+    language: "en",
+    tags: ["digital-rights", "civic-tech", "press-freedom"],
+  },
 ];
 
-// GitHub Topics API for civic-tech repos updated recently
+// GitHub Topics API for civic-tech / govtech / open-data repos updated recently
 async function fetchGitHubRepos() {
   const token = process.env.GITHUB_TOKEN;
   const headers: Record<string, string> = {
@@ -169,7 +217,7 @@ async function fetchGitHubRepos() {
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(
-    "https://api.github.com/search/repositories?q=topic:civic-tech+OR+topic:govtech+pushed:>2020-01-01&sort=updated&per_page=20",
+    "https://api.github.com/search/repositories?q=topic:civic-tech+OR+topic:govtech+OR+topic:open-data+pushed:>2020-01-01&sort=updated&per_page=20",
     { headers }
   );
   if (!res.ok) return [];

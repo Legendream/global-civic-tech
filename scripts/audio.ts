@@ -13,6 +13,8 @@ const supabase = createClient(
 
 const BUCKET = "audio";
 const RETAIN_DAYS = 180;
+const TTS_CHAR_LIMIT = 4096; // OpenAI TTS 單次請求的 input 字元上限
+const CHUNK_SIZE = 3800; // 切段目標長度，保留餘裕在段落／句子邊界斷句
 
 async function textToSpeech(text: string): Promise<Buffer> {
   const res = await fetch("https://api.openai.com/v1/audio/speech", {
@@ -24,7 +26,7 @@ async function textToSpeech(text: string): Promise<Buffer> {
     body: JSON.stringify({
       model: "tts-1",
       voice: "nova",
-      input: text.slice(0, 4000),
+      input: text.slice(0, TTS_CHAR_LIMIT),
       response_format: "mp3",
     }),
   });
@@ -34,6 +36,35 @@ async function textToSpeech(text: string): Promise<Buffer> {
   }
 
   return Buffer.from(await res.arrayBuffer());
+}
+
+// 依段落／句子切成多段，避開 OpenAI TTS 單次 4096 字元上限
+function splitIntoChunks(text: string): string[] {
+  const chunks: string[] = [];
+  let current = "";
+
+  const flush = () => {
+    if (current.trim()) chunks.push(current.trim());
+    current = "";
+  };
+
+  for (const paragraph of text.split("\n")) {
+    if (current.length + paragraph.length + 1 <= CHUNK_SIZE) {
+      current += (current ? "\n" : "") + paragraph;
+      continue;
+    }
+    flush();
+    if (paragraph.length <= CHUNK_SIZE) {
+      current = paragraph;
+      continue;
+    }
+    for (const sentence of paragraph.split(/(?<=[。！？.!?])/)) {
+      if (current.length + sentence.length > CHUNK_SIZE) flush();
+      current += sentence;
+    }
+  }
+  flush();
+  return chunks;
 }
 
 async function deleteOldFiles() {
@@ -77,9 +108,21 @@ async function main() {
     return;
   }
 
+  const chunks = splitIntoChunks(digest.content_zh);
+  console.log(
+    `Digest is ${digest.content_zh.length} chars → ${chunks.length} TTS chunk(s).`
+  );
+
   let mp3: Buffer;
   try {
-    mp3 = await textToSpeech(digest.content_zh);
+    const parts: Buffer[] = [];
+    for (let i = 0; i < chunks.length; i++) {
+      console.log(
+        `  TTS chunk ${i + 1}/${chunks.length} (${chunks[i].length} chars)...`
+      );
+      parts.push(await textToSpeech(chunks[i]));
+    }
+    mp3 = Buffer.concat(parts);
   } catch (err) {
     console.warn("TTS failed, skipping audio:", (err as Error).message);
     return;
@@ -99,12 +142,15 @@ async function main() {
     .from(BUCKET)
     .getPublicUrl(filename);
 
+  // 加上版本參數，讓每次重新生成都是全新網址，避免瀏覽器／CDN 沿用舊快取
+  const versionedUrl = `${publicUrl}?v=${Date.now()}`;
+
   await supabase
     .from("daily_digests")
-    .update({ audio_url: publicUrl })
+    .update({ audio_url: versionedUrl })
     .eq("date", targetDate);
 
-  console.log(`Audio saved: ${publicUrl}`);
+  console.log(`Audio saved: ${versionedUrl}`);
 
   await deleteOldFiles();
 }

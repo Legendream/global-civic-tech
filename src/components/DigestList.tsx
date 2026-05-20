@@ -29,6 +29,7 @@ export default function DigestList({
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loadingAll, setLoadingAll] = useState(false);
   const [query, setQuery] = useState("");
+  const [type, setType] = useState("all");
   const [country, setCountry] = useState("all");
   const [tag, setTag] = useState("all");
 
@@ -76,6 +77,10 @@ export default function DigestList({
   const filtered = useMemo(
     () =>
       allArticles.filter((a) => {
+        if (type !== "all") {
+          const isProject = a.source === "GitHub";
+          if (type === "project" ? !isProject : isProject) return false;
+        }
         if (country !== "all" && a.country !== country) return false;
         if (tag !== "all" && !a.tags.includes(tag)) return false;
         if (query) {
@@ -91,7 +96,7 @@ export default function DigestList({
         }
         return true;
       }),
-    [allArticles, country, tag, query, isZh]
+    [allArticles, type, country, tag, query, isZh]
   );
 
   if (digests.length === 0) {
@@ -249,6 +254,31 @@ export default function DigestList({
             <>
               <div>
                 <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">
+                  {isZh ? "類型" : "Type"}
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {[
+                    { key: "all", label: isZh ? "全部" : "All" },
+                    { key: "project", label: isZh ? "專案" : "Project" },
+                    { key: "article", label: isZh ? "報導" : "Article" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.key}
+                      onClick={() => setType(opt.key)}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-colors cursor-pointer ${
+                        type === opt.key
+                          ? "bg-indigo-600 text-white font-medium"
+                          : "bg-white border border-zinc-200 text-zinc-600 hover:border-indigo-300 hover:text-indigo-600"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">
                   {isZh ? "國家 / 地區" : "Country / Region"}
                 </p>
                 <div className="flex gap-2 flex-wrap">
@@ -293,9 +323,9 @@ export default function DigestList({
                 <span className="text-sm text-zinc-500">
                   {filtered.length} {isZh ? "則結果" : "results"}
                 </span>
-                {(country !== "all" || tag !== "all" || query) && (
+                {(type !== "all" || country !== "all" || tag !== "all" || query) && (
                   <button
-                    onClick={() => { setCountry("all"); setTag("all"); setQuery(""); }}
+                    onClick={() => { setType("all"); setCountry("all"); setTag("all"); setQuery(""); }}
                     className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors cursor-pointer"
                   >
                     {isZh ? "清除篩選" : "Clear filters"}
