@@ -28,12 +28,33 @@ export default function AudioPlayer({
     const onMeta = () => setDuration(el.duration);
     const onEnded = () => setPlaying(false);
 
+    // OpenAI TTS 的 mp3（多段串接後尤其明顯）在瀏覽器中 duration 會回報為
+    // Infinity，使進度條與秒數卡住。強制 seek 到極遠處讓瀏覽器算出真實長度，
+    // durationchange 觸發後再跳回開頭。
+    const fixInfiniteDuration = () => {
+      if (el.duration !== Infinity && !Number.isNaN(el.duration)) return;
+      const snapBack = () => {
+        el.removeEventListener("timeupdate", snapBack);
+        el.currentTime = 0;
+      };
+      el.addEventListener("timeupdate", snapBack);
+      el.currentTime = 1e101;
+    };
+
     el.addEventListener("timeupdate", onTime);
     el.addEventListener("loadedmetadata", onMeta);
+    el.addEventListener("loadedmetadata", fixInfiniteDuration);
+    el.addEventListener("durationchange", onMeta);
     el.addEventListener("ended", onEnded);
+    if (el.readyState >= 1) {
+      onMeta();
+      fixInfiniteDuration();
+    }
     return () => {
       el.removeEventListener("timeupdate", onTime);
       el.removeEventListener("loadedmetadata", onMeta);
+      el.removeEventListener("loadedmetadata", fixInfiniteDuration);
+      el.removeEventListener("durationchange", onMeta);
       el.removeEventListener("ended", onEnded);
     };
   }, []);
