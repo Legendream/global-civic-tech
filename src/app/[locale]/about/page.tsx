@@ -9,23 +9,23 @@ type Source = {
 };
 
 const SOURCES: Source[] = [
-  { name: "mySociety", url: "https://www.mysociety.org", country: "United Kingdom", flag: "🇬🇧", tags: ["civic-tech", "democracy"] },
-  { name: "GDS Blog", url: "https://gds.blog.gov.uk", country: "United Kingdom", flag: "🇬🇧", tags: ["public-service", "open-source"] },
-  { name: "PublicTechnology", url: "https://www.publictechnology.net", country: "United Kingdom", flag: "🇬🇧", tags: ["govtech"] },
-  { name: "Beeck Center", url: "https://beeckcenter.georgetown.edu", country: "United States", flag: "🇺🇸", tags: ["civic-tech", "government"] },
-  { name: "Nextgov", url: "https://www.nextgov.com", country: "United States", flag: "🇺🇸", tags: ["AI governance", "public-service"] },
-  { name: "Federal News Network", url: "https://federalnewsnetwork.com", country: "United States", flag: "🇺🇸", tags: ["transparency"] },
-  { name: "Government Technology", url: "https://www.govtech.com", country: "United States", flag: "🇺🇸", tags: ["govtech"] },
-  { name: "StateScoop", url: "https://statescoop.com", country: "United States", flag: "🇺🇸", tags: ["state & local govtech"] },
-  { name: "FedScoop", url: "https://fedscoop.com", country: "United States", flag: "🇺🇸", tags: ["federal govtech"] },
-  { name: "Smart Cities Dive", url: "https://www.smartcitiesdive.com", country: "United States", flag: "🇺🇸", tags: ["smart cities"] },
-  { name: "GovTech Review", url: "https://www.govtechreview.com.au", country: "Australia", flag: "🇦🇺", tags: ["govtech", "open-data"] },
-  { name: "The GovLab", url: "https://thegovlab.org", country: "International", flag: "🌐", tags: ["civic-tech", "open-data"] },
-  { name: "Endstate", url: "https://endstate.substack.com", country: "International", flag: "🌐", tags: ["public interest tech"] },
-  { name: "OECD-OPSI", url: "https://oecd-opsi.org", country: "International", flag: "🌐", tags: ["public sector innovation"] },
-  { name: "Open Government Partnership", url: "https://www.opengovpartnership.org", country: "International", flag: "🌐", tags: ["open government", "transparency"] },
-  { name: "Decidim", url: "https://decidim.org", country: "International", flag: "🌐", tags: ["e-participation", "open-source"] },
-  { name: "Open Contracting Partnership", url: "https://www.open-contracting.org", country: "International", flag: "🌐", tags: ["anti-corruption", "open-data"] },
+  { name: "mySociety", url: "https://www.mysociety.org", country: "英國", flag: "🇬🇧", tags: ["civic-tech", "democracy"] },
+  { name: "GDS Blog", url: "https://gds.blog.gov.uk", country: "英國", flag: "🇬🇧", tags: ["public-service", "open-source"] },
+  { name: "PublicTechnology", url: "https://www.publictechnology.net", country: "英國", flag: "🇬🇧", tags: ["govtech"] },
+  { name: "Beeck Center", url: "https://beeckcenter.georgetown.edu", country: "美國", flag: "🇺🇸", tags: ["civic-tech", "government"] },
+  { name: "Nextgov", url: "https://www.nextgov.com", country: "美國", flag: "🇺🇸", tags: ["AI governance", "public-service"] },
+  { name: "Federal News Network", url: "https://federalnewsnetwork.com", country: "美國", flag: "🇺🇸", tags: ["transparency"] },
+  { name: "Government Technology", url: "https://www.govtech.com", country: "美國", flag: "🇺🇸", tags: ["govtech"] },
+  { name: "StateScoop", url: "https://statescoop.com", country: "美國", flag: "🇺🇸", tags: ["state & local govtech"] },
+  { name: "FedScoop", url: "https://fedscoop.com", country: "美國", flag: "🇺🇸", tags: ["federal govtech"] },
+  { name: "Smart Cities Dive", url: "https://www.smartcitiesdive.com", country: "美國", flag: "🇺🇸", tags: ["smart cities"] },
+  { name: "GovTech Review", url: "https://www.govtechreview.com.au", country: "澳洲", flag: "🇦🇺", tags: ["govtech", "open-data"] },
+  { name: "The GovLab", url: "https://thegovlab.org", country: "國際", flag: "🌐", tags: ["civic-tech", "open-data"] },
+  { name: "Endstate", url: "https://endstate.substack.com", country: "國際", flag: "🌐", tags: ["public interest tech"] },
+  { name: "OECD-OPSI", url: "https://oecd-opsi.org", country: "國際", flag: "🌐", tags: ["public sector innovation"] },
+  { name: "Open Government Partnership", url: "https://www.opengovpartnership.org", country: "國際", flag: "🌐", tags: ["open government", "transparency"] },
+  { name: "Decidim", url: "https://decidim.org", country: "國際", flag: "🌐", tags: ["e-participation", "open-source"] },
+  { name: "Open Contracting Partnership", url: "https://www.open-contracting.org", country: "國際", flag: "🌐", tags: ["anti-corruption", "open-data"] },
 ];
 
 export default async function AboutPage({
@@ -33,26 +33,21 @@ export default async function AboutPage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
+  await params;
   const t = await getTranslations("about");
-  const isZh = locale === "zh";
 
-  const jobs = [
-    {
-      when: t("job1When"),
-      want: t("job1Want"),
-      so: t("job1So"),
-    },
-    {
-      when: t("job2When"),
-      want: t("job2Want"),
-      so: t("job2So"),
-    },
-    {
-      when: t("job3When"),
-      want: t("job3Want"),
-      so: t("job3So"),
-    },
+  const navCards = [
+    { nav: t("navHome"),      desc: t("navHomeDesc") },
+    { nav: t("navDigest"),    desc: t("navDigestDesc") },
+    { nav: t("navMap"),       desc: t("navMapDesc") },
+    { nav: t("navBookmarks"), desc: t("navBookmarksDesc") },
+  ];
+
+  const steps = [
+    { step: "01", label: t("step1") },
+    { step: "02", label: t("step2") },
+    { step: "03", label: t("step3") },
+    { step: "04", label: t("step4") },
   ];
 
   return (
@@ -60,28 +55,23 @@ export default async function AboutPage({
 
       {/* Hero */}
       <section>
-        <h1 className="text-2xl font-bold text-zinc-900 mb-3">{t("title")}</h1>
-        <p className="text-zinc-500 leading-relaxed max-w-2xl">{t("intro")}</p>
+        <h1 className="text-2xl font-bold text-zinc-900 mb-4">{t("title")}</h1>
+        <p className="text-lg text-zinc-700 leading-relaxed max-w-2xl mb-4">
+          {t("introMain")}
+        </p>
+        <p className="text-zinc-500 leading-relaxed max-w-2xl">
+          {t("introCivicTech")}
+        </p>
       </section>
 
-      {/* JTBD */}
+      {/* How to get started */}
       <section>
-        <h2 className="text-base font-semibold text-zinc-800 mb-6">{t("jtbdTitle")}</h2>
-        <div className="space-y-4">
-          {jobs.map((job, i) => (
-            <div key={i} className="bg-white border border-zinc-200 rounded-xl p-6 space-y-3">
-              <div className="flex gap-3 text-sm">
-                <span className="shrink-0 font-medium text-zinc-400 w-16">{t("labelWhen")}</span>
-                <span className="text-zinc-700">{job.when}</span>
-              </div>
-              <div className="flex gap-3 text-sm">
-                <span className="shrink-0 font-medium text-indigo-500 w-16">{t("labelWant")}</span>
-                <span className="text-zinc-700">{job.want}</span>
-              </div>
-              <div className="flex gap-3 text-sm">
-                <span className="shrink-0 font-medium text-emerald-600 w-16">{t("labelSo")}</span>
-                <span className="text-zinc-700">{job.so}</span>
-              </div>
+        <h2 className="text-base font-semibold text-zinc-800 mb-6">{t("getStartedTitle")}</h2>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {navCards.map(({ nav, desc }) => (
+            <div key={nav} className="bg-white border border-zinc-200 rounded-xl p-5">
+              <div className="text-sm font-semibold text-zinc-900 mb-1.5">{nav}</div>
+              <p className="text-sm text-zinc-600 leading-relaxed">{desc}</p>
             </div>
           ))}
         </div>
@@ -91,12 +81,7 @@ export default async function AboutPage({
       <section>
         <h2 className="text-base font-semibold text-zinc-800 mb-4">{t("howTitle")}</h2>
         <div className="flex flex-col sm:flex-row gap-3">
-          {[
-            { step: "01", label: t("step1") },
-            { step: "02", label: t("step2") },
-            { step: "03", label: t("step3") },
-            { step: "04", label: t("step4") },
-          ].map(({ step, label }) => (
+          {steps.map(({ step, label }) => (
             <div key={step} className="flex-1 bg-zinc-50 border border-zinc-100 rounded-xl p-4">
               <div className="text-xs font-mono text-zinc-400 mb-1">{step}</div>
               <div className="text-sm text-zinc-700">{label}</div>
@@ -133,7 +118,7 @@ export default async function AboutPage({
                   </td>
                   <td className="py-3 pr-6 text-zinc-600">
                     <span className="mr-1.5">{src.flag}</span>
-                    {isZh ? translateCountry(src.country) : src.country}
+                    {src.country}
                   </td>
                   <td className="py-3">
                     <div className="flex flex-wrap gap-1.5">
@@ -162,14 +147,4 @@ export default async function AboutPage({
 
     </div>
   );
-}
-
-function translateCountry(country: string): string {
-  const map: Record<string, string> = {
-    "United Kingdom": "英國",
-    "United States": "美國",
-    "Australia": "澳洲",
-    "International": "國際",
-  };
-  return map[country] ?? country;
 }
