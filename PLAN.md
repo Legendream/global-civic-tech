@@ -20,7 +20,7 @@ Claire 的個人公民科技知識庫工具，同時作為公開網站。
 | 翻譯 | DeepL API | 免費 50 萬字/月，key 結尾 `:fx` 為免費版 |
 | 摘要 | Anthropic Claude API (claude-haiku-4-5-20251001) | 翻譯後再摘要，月費約 $1–3 |
 | 語音 | OpenAI TTS API (tts-1, voice: nova) | 將當日繁中摘要轉成 mp3 |
-| 地圖 | Leaflet.js + OpenStreetMap | 完全免費，client-side dynamic import |
+| 地圖 | Leaflet.js（raw）+ CARTO Voyager nolabels | 無標籤淺色底圖，client-side dynamic import，不依賴 react-leaflet |
 | 自動化 | GitHub Actions | 每日 UTC 00:00（台灣時間 08:00）執行 |
 | 部署 | Vercel（前端）+ Supabase（DB） | 均有免費方案 |
 
@@ -43,16 +43,18 @@ global-civic-tech/
 │   │       ├── cases/page.tsx          ← 舊路由，redirect → /digest
 │   │       ├── map/page.tsx            ← 全球地圖
 │   │       ├── bookmarks/page.tsx      ← 靈感庫（收藏的報導）
-│   │       └── about/page.tsx          ← 關於頁（JTBD 說明 + 資料來源）
+│   │       └── about/page.tsx          ← 關於頁（網站介紹 + 「該怎麼開始使用」卡片 + 23 個來源表格）
 │   │
 │   ├── components/
-│   │   ├── Navbar.tsx                  ← 導覽列 + 收藏數徽章（client）
+│   │   ├── Navbar.tsx                  ← 導覽列 + accent 品牌點 + gradient 底線 + 收藏數徽章（client）
 │   │   ├── Footer.tsx                  ← Footer
 │   │   ├── ArticleCard.tsx             ← 單篇報導卡片 + 收藏鈕 + 專案/報導類型標籤
-│   │   ├── DigestList.tsx              ← 報告頁主元件：日期分頁 + 搜尋分頁（類型/國家/標籤/關鍵字篩選）
+│   │   ├── DigestList.tsx              ← 報告頁主元件：日期分頁（含每日 DigestStatRow）+ 搜尋分頁（類型/國家/標籤/關鍵字篩選）
+│   │   ├── DigestContent.tsx           ← 摘要純文字解析器：【Section】→ H3（accent 左邊線＋底色）/ 短詞 → H4（左邊線）/ 段落
+│   │   ├── DigestErrorCard.tsx         ← 摘要載入失敗狀態（紅色警示＋重新載入鈕，client）
 │   │   ├── AudioPlayer.tsx             ← 自製語音播放器（修正 OpenAI TTS duration=Infinity 問題）
-│   │   ├── BookmarksClient.tsx         ← 靈感庫頁：清單 + 匯出/匯入（client）
-│   │   └── MapClient.tsx               ← Leaflet 地圖，點擊顯示各國案例（client）
+│   │   ├── BookmarksClient.tsx         ← 靈感庫頁：清單 + 匯出/匯入（空狀態只顯示提示，有收藏才顯示備份警告）（client）
+│   │   └── MapClient.tsx               ← raw Leaflet 地圖：CARTO 底圖、divIcon 資料節點（案例數＋大小縮放）、排行側欄＋國家明細面板（client）
 │   │
 │   ├── i18n/
 │   │   ├── routing.ts                  ← locales: ["zh"]（英文已停用，en.json 保留未啟用）
@@ -183,7 +185,7 @@ scripts/audio.ts
 
 ---
 
-## 目前狀態（2026-05-20）
+## 目前狀態（2026-05-29）
 
 ### 已完成
 - [x] Next.js 16 專案、Supabase schema、繁中前端、四階段資料管道（fetch / process / digest / audio）
@@ -200,6 +202,19 @@ scripts/audio.ts
 - [x] GitHub Actions 每日排程、GitHub Secrets、Vercel 部署、Supabase RLS + GRANT 均已設定
 - [x] GitHub repo：https://github.com/Legendream/global-civic-tech
 - [x] Vercel 部署：https://global-civic-tech.vercel.app（自訂網域 civictech.claire-cheng.com）
+- [x] **全站視覺系統對齊設計稿**（2026-05-29，PR #8）
+  - CSS token 系統：`--accent`（cyan `#0891b2`）及衍生 vars，所有 `indigo-*` class 映射到 accent vars，一處換色全站生效
+  - 移除 `@media (prefers-color-scheme: dark)` 殘留，網站不論 OS 設定一律維持淺色
+  - Navbar：accent 品牌方塊（`box-shadow` 光暈）+ 底部 gradient 細線
+  - 首頁 masthead hero：兩欄，左側 live 點 eyebrow + 大標題 + 副標；右側超大 mono 日期數字 + `YYYY/MM` + `TODAY · 今日版`；四角十字 tick；手機單欄
+  - 首頁摘要三態：pending（平靜時鐘卡）/ error（`DigestErrorCard` 紅色警示 + 重載鈕）/ ready
+  - 首頁 `DigestStatRow`：mono 讀數列（則報導 / 國家・地區 / 主題標籤 / 資料來源）
+  - 地圖頁全面重寫：CARTO Voyager 底圖、`divIcon` `.cmark` 資料節點（圓內案例數、依數量縮放、hover 放大、選中實心）、三格統計條、四角 tick + 左下座標讀數膠囊、排行側欄（序號 + 國旗 + accent 進度條）+ 國家明細面板（flyTo 動畫）
+  - 報告頁 StatStrip 升為 4 格（報告天數 / 累計報導 / 涵蓋國家 / 主題標籤），每日摘要卡內含 DigestStatRow
+  - 關於頁：移除 JTBD 卡片，改為「該怎麼開始使用？」導覽卡 + 更新來源說明（23 個）
+  - 靈感庫空狀態：有收藏才顯示備份警告與匯出/匯入按鈕
+  - `DigestContent.tsx`：摘要純文字三層排版（`【Section】` H3 / 短詞 H4 / 段落），修正 H3 `text-xs`（12px）< 正文 `text-sm`（14px）的階層 bug
+  - 導覽列「每日摘要」與首頁區塊標題「今日摘要」均改為「當日摘要」
 
 ### 待完成
 - [ ] 確認 GitHub Actions 排程穩定執行（每日 UTC 00:00）
@@ -238,7 +253,7 @@ npm run build
 ## 重要注意事項
 
 - **Next.js 16 breaking change**：middleware 改為 `src/proxy.ts`，export 為 `proxy`（非 `default`）
-- **Leaflet**：需 client-side dynamic import（`MapClient.tsx` 用 `useEffect` + `Promise.all`）
+- **Leaflet**：使用 raw Leaflet（非 react-leaflet），`MapClient.tsx` 以 `useEffect` + `Promise.all([import("leaflet"), import("leaflet/dist/leaflet.css")])` 動態載入；`divIcon` 節點大小 `22 + min(count,8)*4` px；需 `setMapReady` state 觸發 marker 重繪 effect
 - **Supabase**：`supabase.ts` 用 fallback placeholder 讓 build 不因缺 env 而失敗；runtime 需真實 keys
 - **`force-dynamic`**：資料頁面均加 `export const dynamic = "force-dynamic"`，避免 build 時靜態化
 - **OpenAI TTS**：單次請求 input 上限 4096 字元，故 `audio.ts` 需切段；產生的 mp3 在瀏覽器中 `duration` 會回報為 `Infinity`，由 `AudioPlayer.tsx` 以 seek-to-end 技巧修正
