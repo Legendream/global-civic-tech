@@ -20,12 +20,16 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-zinc-100">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-zinc-100 relative">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
         <Link
           href={`/${locale}`}
-          className="font-semibold text-zinc-900 text-sm shrink-0 hover:text-indigo-600 transition-colors"
+          className="flex items-center gap-2 font-semibold text-zinc-900 text-sm shrink-0 hover:text-indigo-600 transition-colors"
         >
+          <span
+            className="inline-block w-2 h-2 rounded-sm bg-indigo-600 shrink-0"
+            style={{ boxShadow: "0 0 8px var(--accent)" }}
+          />
           {locale === "zh" ? "全球公民科技動態" : "Global Civic Tech"}
         </Link>
 
@@ -56,6 +60,11 @@ export default function Navbar() {
           })}
         </nav>
       </div>
+      {/* Accent gradient underline */}
+      <div
+        className="absolute left-0 right-0 bottom-0 h-px"
+        style={{ background: "linear-gradient(to right, transparent, var(--accent), transparent)", opacity: 0.6 }}
+      />
     </header>
   );
 }

@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { type Article } from "@/lib/supabase";
 
-// Country code → approximate lat/lng center
 const COUNTRY_COORDS: Record<string, [number, number]> = {
   TW: [23.7, 121.0], US: [37.1, -95.7], GB: [55.4, -3.4],
   DE: [51.2, 10.5], FR: [46.2, 2.2], JP: [36.2, 138.3],
@@ -20,6 +19,17 @@ const COUNTRY_COORDS: Record<string, [number, number]> = {
   PH: [12.9, 121.8], TH: [15.9, 100.9], VN: [14.1, 108.3],
 };
 
+const FLAG: Record<string, string> = {
+  TW: "🇹🇼", US: "🇺🇸", GB: "🇬🇧", DE: "🇩🇪", FR: "🇫🇷",
+  JP: "🇯🇵", KR: "🇰🇷", IN: "🇮🇳", BR: "🇧🇷", AU: "🇦🇺",
+  CA: "🇨🇦", SG: "🇸🇬", KE: "🇰🇪", NG: "🇳🇬", ZA: "🇿🇦",
+  NL: "🇳🇱", SE: "🇸🇪", FI: "🇫🇮", NO: "🇳🇴", DK: "🇩🇰",
+  ES: "🇪🇸", IT: "🇮🇹", PL: "🇵🇱", UA: "🇺🇦", EE: "🇪🇪",
+  MX: "🇲🇽", AR: "🇦🇷", CL: "🇨🇱", CO: "🇨🇴", PE: "🇵🇪",
+  GH: "🇬🇭", TZ: "🇹🇿", UG: "🇺🇬", RW: "🇷🇼", ID: "🇮🇩",
+  MY: "🇲🇾", PH: "🇵🇭", TH: "🇹🇭", VN: "🇻🇳",
+};
+
 type CountryGroup = {
   country: string;
   country_code: string;
@@ -27,36 +37,14 @@ type CountryGroup = {
   articles: Article[];
 };
 
-export default function MapClient({
-  articles,
-  locale,
-}: {
-  articles: Article[];
-  locale: string;
-}) {
-  const [MapComponents, setMapComponents] = useState<{
-    MapContainer: typeof import("react-leaflet")["MapContainer"];
-    TileLayer: typeof import("react-leaflet")["TileLayer"];
-    CircleMarker: typeof import("react-leaflet")["CircleMarker"];
-    Popup: typeof import("react-leaflet")["Popup"];
-  } | null>(null);
-
+export default function MapClient({ articles }: { articles: Article[] }) {
+  const mapElRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<unknown>(null);
+  const layerRef = useRef<unknown>(null);
+  const LRef = useRef<unknown>(null);
+  const [mapReady, setMapReady] = useState(false);
   const [selected, setSelected] = useState<CountryGroup | null>(null);
-  const isZh = locale === "zh";
-
-  useEffect(() => {
-    Promise.all([
-      import("react-leaflet"),
-      import("leaflet/dist/leaflet.css"),
-    ]).then(([rl]) => {
-      setMapComponents({
-        MapContainer: rl.MapContainer,
-        TileLayer: rl.TileLayer,
-        CircleMarker: rl.CircleMarker,
-        Popup: rl.Popup,
-      });
-    });
-  }, []);
+  const [coord, setCoord] = useState<[number, number] | null>(null);
 
   const groups = useMemo<CountryGroup[]>(() => {
     const map = new Map<string, CountryGroup>();
@@ -72,118 +60,233 @@ export default function MapClient({
       }
       map.get(a.country_code)!.articles.push(a);
     }
-    return [...map.values()];
+    return [...map.values()].sort((a, b) => b.articles.length - a.articles.length);
   }, [articles]);
 
-  if (!MapComponents) {
-    return (
-      <div className="h-[500px] bg-zinc-100 rounded-xl flex items-center justify-center text-zinc-400">
-        {isZh ? "地圖載入中..." : "Loading map..."}
-      </div>
-    );
-  }
+  const totalCases = useMemo(
+    () => groups.reduce((n, g) => n + g.articles.length, 0),
+    [groups]
+  );
+  const maxCount = groups[0]?.articles.length || 1;
+  const sourcesCount = useMemo(
+    () => new Set(articles.map((a) => a.source).filter(Boolean)).size,
+    [articles]
+  );
 
-  const { MapContainer, TileLayer, CircleMarker, Popup } = MapComponents;
+  // Initialise raw Leaflet map (once)
+  useEffect(() => {
+    if (mapRef.current || !mapElRef.current) return;
+    let destroyed = false;
+
+    Promise.all([
+      import("leaflet"),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      import("leaflet/dist/leaflet.css"),
+    ]).then(([LModule]) => {
+      if (destroyed || mapRef.current) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = (LModule as any).default ?? LModule;
+      LRef.current = L;
+
+      const map = L.map(mapElRef.current, {
+        scrollWheelZoom: false,
+        worldCopyJump: true,
+        minZoom: 2,
+        maxBounds: [[-85, -200], [85, 200]],
+        zoomControl: true,
+      }).setView([25, 12], 2);
+
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png",
+        {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          subdomains: "abcd",
+          maxZoom: 19,
+        }
+      ).addTo(map);
+
+      layerRef.current = L.layerGroup().addTo(map);
+      mapRef.current = map;
+      setTimeout(() => (map as { invalidateSize: () => void }).invalidateSize(), 60);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      map.on("mousemove", (e: any) => setCoord([e.latlng.lat, e.latlng.lng]));
+      map.on("mouseout", () => setCoord(null));
+
+      setMapReady(true);
+    });
+
+    return () => {
+      destroyed = true;
+      if (mapRef.current) {
+        (mapRef.current as { remove: () => void }).remove();
+        mapRef.current = null;
+        layerRef.current = null;
+        LRef.current = null;
+      }
+    };
+  }, []);
+
+  // Redraw markers when map is ready, groups change, or selection changes
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const L = LRef.current as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const layer = layerRef.current as any;
+    if (!L || !layer) return;
+
+    layer.clearLayers();
+    groups.forEach((g) => {
+      const count = g.articles.length;
+      const size = Math.round(22 + Math.min(count, 8) * 4);
+      const sel = selected?.country_code === g.country_code;
+      const icon = L.divIcon({
+        className: "cmark-wrap",
+        html: `<div class="cmark${sel ? " sel" : ""}">${count}</div>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      });
+      const m = L.marker(g.coords, { icon, riseOnHover: true });
+      m.on("click", () => {
+        setSelected(g);
+        (mapRef.current as { flyTo: (c: unknown, z: number, o: unknown) => void } | null)
+          ?.flyTo(g.coords, 4, { duration: 0.7 });
+      });
+      m.addTo(layer);
+    });
+  }, [mapReady, groups, selected]);
+
+  const stats = [
+    { k: "國家 / 地區", v: groups.length },
+    { k: "案例總數", v: totalCases },
+    { k: "追蹤來源", v: sourcesCount },
+  ];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
-      <div className="flex-1 rounded-xl overflow-hidden border border-zinc-200" style={{ height: 500 }}>
-        <MapContainer
-          center={[20, 10]}
-          zoom={2}
-          style={{ height: "100%", width: "100%" }}
-          scrollWheelZoom={false}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          />
-          {groups.map((g) => (
-            <CircleMarker
-              key={g.country_code}
-              center={g.coords}
-              radius={Math.min(6 + g.articles.length * 1.5, 20)}
-              pathOptions={{
-                color: "#18181b",
-                fillColor: "#18181b",
-                fillOpacity: 0.7,
-                weight: 1,
-              }}
-              eventHandlers={{ click: () => setSelected(g) }}
-            >
-              <Popup>
-                <div className="text-sm font-medium">{g.country}</div>
-                <div className="text-xs text-zinc-500">
-                  {g.articles.length} {isZh ? "件案例" : "cases"}
-                </div>
-              </Popup>
-            </CircleMarker>
-          ))}
-        </MapContainer>
+    <>
+      {/* Stat strip */}
+      <div className="grid grid-cols-3 gap-3">
+        {stats.map((s) => (
+          <div key={s.k} className="bg-white border border-zinc-200 rounded-xl px-4 py-3">
+            <div className="text-2xl font-bold text-zinc-900 tabular-nums tech-mono">{s.v}</div>
+            <div className="text-xs text-zinc-400 mt-0.5">{s.k}</div>
+          </div>
+        ))}
       </div>
 
-      <aside className="lg:w-72 flex-shrink-0">
-        {selected ? (
-          <div className="bg-white border border-zinc-200 rounded-xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-zinc-900">{selected.country}</h3>
-              <button
-                onClick={() => setSelected(null)}
-                className="text-zinc-400 hover:text-zinc-600 text-lg leading-none"
-              >
-                ×
-              </button>
-            </div>
-            <p className="text-sm text-zinc-500">
-              {selected.articles.length} {isZh ? "件案例" : "cases"}
-            </p>
-            <ul className="space-y-2 max-h-80 overflow-y-auto">
-              {selected.articles.slice(0, 10).map((a) => {
-                const title = isZh ? (a.title_zh ?? a.title_original) : (a.title_en ?? a.title_original);
-                return (
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Map console */}
+        <div
+          className="flex-1 map-frame min-h-[520px] rounded-xl overflow-hidden border border-zinc-200"
+          style={{ height: 520 }}
+        >
+          <div ref={mapElRef} style={{ position: "absolute", inset: 0 }} />
+          <span className="map-tick tl" />
+          <span className="map-tick tr" />
+          <span className="map-tick bl" />
+          <span className="map-tick br" />
+          <div className="map-readout">
+            {coord
+              ? `LAT ${coord[0].toFixed(2)}  LNG ${coord[1].toFixed(2)}`
+              : `NODES ${groups.length}  ·  CASES ${totalCases}`}
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <aside className="lg:w-80 flex-shrink-0 space-y-4">
+          {selected ? (
+            /* Country detail */
+            <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base leading-none">{FLAG[selected.country_code] ?? "🌐"}</span>
+                    <h3 className="font-semibold text-zinc-900">{selected.country}</h3>
+                  </div>
+                  <p className="text-xs text-zinc-400 mt-0.5 tech-mono">{selected.articles.length} CASES</p>
+                </div>
+                <button
+                  onClick={() => setSelected(null)}
+                  aria-label="返回列表"
+                  className="text-zinc-400 hover:text-zinc-700 text-lg leading-none cursor-pointer w-7 h-7 flex items-center justify-center rounded-lg hover:bg-zinc-100 transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+              <ul className="divide-y divide-zinc-50 max-h-[360px] overflow-y-auto">
+                {selected.articles.map((a) => (
                   <li key={a.id}>
                     <a
                       href={a.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-sm text-zinc-700 hover:text-zinc-900 leading-snug"
+                      className="block px-4 py-3 hover:bg-zinc-50 transition-colors"
                     >
-                      {title}
-                      <span className="block text-xs text-zinc-400 mt-0.5">{a.source}</span>
+                      <span className="block text-sm text-zinc-800 leading-snug">
+                        {a.title_zh ?? a.title_original}
+                      </span>
+                      <span className="flex items-center gap-2 text-xs text-zinc-400 mt-1">
+                        <span className="text-indigo-600">{a.source}</span>
+                        {a.tags?.[0] && (
+                          <span className="tech-mono">#{a.tags[0]}</span>
+                        )}
+                      </span>
                     </a>
                   </li>
-                );
-              })}
-            </ul>
-            <a
-              href={`/${locale}/cases`}
-              className="block text-center text-sm text-zinc-500 hover:text-zinc-900 border border-zinc-200 rounded-lg py-2 transition-colors"
-            >
-              {isZh ? "查看全部案例" : "View all cases"}
-            </a>
-          </div>
-        ) : (
-          <div className="bg-white border border-dashed border-zinc-200 rounded-xl p-6 text-center text-zinc-400 text-sm">
-            {isZh ? "點擊地圖上的點查看各國案例" : "Click a dot on the map to see cases"}
-          </div>
-        )}
-
-        <div className="mt-4 space-y-1">
-          {groups
-            .sort((a, b) => b.articles.length - a.articles.length)
-            .slice(0, 8)
-            .map((g) => (
-              <button
-                key={g.country_code}
-                onClick={() => setSelected(g)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-zinc-100 text-sm transition-colors"
-              >
-                <span className="text-zinc-700">{g.country}</span>
-                <span className="text-zinc-400">{g.articles.length}</span>
-              </button>
-            ))}
-        </div>
-      </aside>
-    </div>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            /* Ranking list */
+            <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-zinc-700">案例排行</h3>
+                <span className="text-xs text-zinc-400 tech-mono">RANK</span>
+              </div>
+              <div className="p-2">
+                {groups.map((g, i) => (
+                  <button
+                    key={g.country_code}
+                    onClick={() => {
+                      setSelected(g);
+                      (mapRef.current as { flyTo: (c: unknown, z: number, o: unknown) => void } | null)
+                        ?.flyTo(g.coords, 4, { duration: 0.7 });
+                    }}
+                    className="w-full group flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-zinc-50 transition-colors cursor-pointer text-left"
+                  >
+                    <span className="w-5 text-xs text-zinc-300 tech-mono shrink-0">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-base leading-none shrink-0">
+                      {FLAG[g.country_code] ?? "🌐"}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="text-sm text-zinc-700 truncate">{g.country}</span>
+                        <span className="text-xs text-zinc-400 tech-mono shrink-0">{g.articles.length}</span>
+                      </span>
+                      <span className="block mt-1 h-1 rounded-full bg-zinc-100 overflow-hidden">
+                        <span
+                          className="block h-full rounded-full"
+                          style={{
+                            width: `${(g.articles.length / maxCount) * 100}%`,
+                            background: "var(--accent)",
+                          }}
+                        />
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <p className="text-xs text-zinc-400 leading-relaxed px-1">
+            節點大小對應案例數量。國際／跨國專案未標記於特定國家，故不顯示在地圖上。
+          </p>
+        </aside>
+      </div>
+    </>
   );
 }

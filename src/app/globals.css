@@ -3,24 +3,169 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Accent token system — cyan default.
+     Override --accent in a child scope (or via a theme class) to recolour the
+     whole site without touching individual components. */
+  --mono: ui-monospace, 'JetBrains Mono', 'IBM Plex Mono', SFMono-Regular, Menlo, monospace;
+  --accent: #0891b2;        /* cyan-600 */
+  --accent-hover: #0e7490;  /* cyan-700 */
+  --accent-soft: #ecfeff;   /* cyan-50 */
+  --accent-soft-fg: #0e7490;
+  --accent-muted: #67e8f9;  /* cyan-300 */
+  --accent-strong: #164e63; /* cyan-900 */
+  --accent-ring: rgba(6, 182, 212, 0.4);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-noto-sans-tc);
+  --font-mono: var(--mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-noto-sans-tc, 'Noto Sans TC', system-ui, -apple-system, sans-serif);
 }
+
+/* ---- Scrollbar hiding --------------------------------------------------- */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ---- Metadata mono helper ----------------------------------------------- */
+.tech-mono {
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+}
+
+/* ---- Skeleton loading shimmer ------------------------------------------- */
+.sk-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.sk-sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  animation: skSweep 1.5s ease-in-out infinite;
+}
+@keyframes skSweep {
+  100% { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk-sweep::after { animation: none; }
+}
+
+/* ---- Accent indirection -------------------------------------------------
+   Components use Tailwind's indigo-* classes throughout the codebase.
+   Mapping them to --accent vars lets us change the site accent in one place. */
+.bg-indigo-600 { background-color: var(--accent) !important; }
+.hover\:bg-indigo-700:hover { background-color: var(--accent-hover) !important; }
+.text-indigo-600 { color: var(--accent) !important; }
+.text-indigo-700 { color: var(--accent-soft-fg) !important; }
+.hover\:text-indigo-800:hover { color: var(--accent-hover) !important; }
+.text-indigo-500 { color: var(--accent) !important; }
+.text-indigo-400 { color: var(--accent-muted) !important; }
+.text-indigo-300 { color: var(--accent-muted) !important; }
+.text-indigo-900 { color: var(--accent-strong) !important; }
+.bg-indigo-50 { background-color: var(--accent-soft) !important; }
+.hover\:bg-indigo-100:hover { background-color: var(--accent-soft) !important; filter: brightness(0.95); }
+.border-indigo-100 { border-color: color-mix(in oklab, var(--accent) 25%, transparent) !important; }
+.border-indigo-200 { border-color: color-mix(in oklab, var(--accent) 35%, transparent) !important; }
+.hover\:border-indigo-200:hover { border-color: color-mix(in oklab, var(--accent) 40%, transparent) !important; }
+.hover\:border-indigo-300:hover { border-color: color-mix(in oklab, var(--accent) 50%, transparent) !important; }
+.hover\:border-indigo-400:hover { border-color: color-mix(in oklab, var(--accent) 60%, transparent) !important; }
+.hover\:text-indigo-600:hover,
+.hover\:text-indigo-700:hover { color: var(--accent) !important; }
+.accent-indigo-600 { accent-color: var(--accent) !important; }
+.focus\:ring-indigo-300:focus { --tw-ring-color: var(--accent-ring) !important; }
+.focus\:border-indigo-300:focus { border-color: var(--accent) !important; }
+
+/* ---- Map data-node markers ---------------------------------------------- */
+.cmark-wrap { background: none !important; border: 0 !important; }
+.cmark {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--accent) 20%, transparent);
+  border: 1.5px solid var(--accent);
+  color: var(--accent-strong);
+  font: 600 11px/1 var(--mono);
+  box-shadow:
+    0 0 0 4px color-mix(in oklab, var(--accent) 8%, transparent),
+    0 0 14px -2px var(--accent);
+  transition: transform 0.15s cubic-bezier(0.3, 0.7, 0.4, 1), background 0.15s;
+  cursor: pointer;
+}
+.cmark:hover { transform: scale(1.14); }
+.cmark.sel {
+  background: var(--accent);
+  color: #fff;
+  box-shadow:
+    0 0 0 5px color-mix(in oklab, var(--accent) 18%, transparent),
+    0 0 20px 0 var(--accent);
+}
+
+/* ---- Map frame ticks + coordinate readout ------------------------------- */
+.map-frame { position: relative; }
+.map-tick {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--accent);
+  pointer-events: none;
+  z-index: 500;
+  opacity: 0.8;
+}
+.map-tick.tl { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
+.map-tick.tr { top: 8px; right: 8px; border-left: 0; border-bottom: 0; }
+.map-tick.bl { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
+.map-tick.br { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
+
+.map-readout {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 500;
+  pointer-events: none;
+  white-space: nowrap;
+  font: 500 10.5px/1.3 var(--mono);
+  letter-spacing: 0.03em;
+  padding: 4px 7px;
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--accent) 12%, rgba(255, 255, 255, 0.7));
+  color: var(--accent-strong);
+  border: 0.5px solid color-mix(in oklab, var(--accent) 35%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* ---- Homepage masthead -------------------------------------------------- */
+.mh { position: relative; }
+.mh-tick { position: absolute; width: 14px; height: 14px; border: 1.5px solid var(--accent); opacity: .8; pointer-events: none; }
+.mh-tick.tl { top: -10px; left: -10px; border-right: 0; border-bottom: 0; }
+.mh-tick.tr { top: -10px; right: -10px; border-left: 0; border-bottom: 0; }
+.mh-tick.bl { bottom: -10px; left: -10px; border-right: 0; border-top: 0; }
+.mh-tick.br { bottom: -10px; right: -10px; border-left: 0; border-top: 0; }
+
+.mh-eyebrow { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; display: flex; align-items: center; gap: 9px; color: var(--accent-soft-fg); }
+.mh-live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 55%, transparent); animation: mhPulse 2s infinite; }
+@keyframes mhPulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 55%, transparent); }
+  70%  { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) { .mh-live { animation: none; } }
+
+.mh-title   { font-size: clamp(30px, 5vw, 42px); font-weight: 900; letter-spacing: -.01em; line-height: 1.04; }
+.mh-edition { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.mh-day     { font-family: var(--mono); font-size: clamp(56px, 9vw, 84px); font-weight: 700; line-height: .85; letter-spacing: -.03em; color: var(--accent); }
+.mh-ym      { font-family: var(--mono); font-size: 16px; font-weight: 600; letter-spacing: .02em; }

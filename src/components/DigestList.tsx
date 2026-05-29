@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { supabase, type DailyDigest, type Article } from "@/lib/supabase";
 import AudioPlayer from "./AudioPlayer";
 import ArticleCard from "./ArticleCard";
+import DigestContent from "./DigestContent";
 
 type Tab = "digest" | "search";
 
@@ -166,12 +167,26 @@ export default function DigestList({
               )}
 
               <div className="px-6 py-5">
-                <p className="text-xs text-zinc-400 mb-4">
-                  {current.date} · {current.article_count} {isZh ? "則報導" : "articles"}
-                </p>
-                <div className="prose prose-zinc prose-sm max-w-none whitespace-pre-wrap leading-relaxed text-zinc-700">
-                  {isZh ? current.content_zh : current.content_en}
-                </div>
+                {!loadingArticles && articles.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-5 pb-4 border-b border-zinc-100">
+                    {[
+                      { v: articles.length, k: isZh ? "則報導" : "articles" },
+                      { v: new Set(articles.map((a) => a.country_code).filter(Boolean)).size, k: isZh ? "國家・地區" : "countries" },
+                      { v: new Set(articles.flatMap((a) => a.tags)).size, k: isZh ? "主題標籤" : "topics" },
+                    ].map((s) => (
+                      <div key={s.k} className="flex items-baseline gap-1.5 whitespace-nowrap">
+                        <span className="text-xl font-bold text-zinc-900 tabular-nums tech-mono leading-none">{s.v}</span>
+                        <span className="text-xs text-zinc-400">{s.k}</span>
+                      </div>
+                    ))}
+                    <span className="ml-auto text-xs text-zinc-300 tech-mono tracking-wide whitespace-nowrap">{current.date}</span>
+                  </div>
+                ) : (
+                  <p className="text-xs text-zinc-400 mb-4">
+                    {current.date} · {current.article_count} {isZh ? "則報導" : "articles"}
+                  </p>
+                )}
+                <DigestContent text={isZh ? current.content_zh : (current.content_en ?? current.content_zh)} />
               </div>
 
               <div className="border-t border-zinc-100 px-6 py-5">
