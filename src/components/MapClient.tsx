@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { type Article } from "@/lib/supabase";
+import { tagZh } from "@/lib/tags";
 
 const COUNTRY_COORDS: Record<string, [number, number]> = {
   TW: [23.7, 121.0], US: [37.1, -95.7], GB: [55.4, -3.4],
@@ -230,7 +231,7 @@ export default function MapClient({ articles }: { articles: Article[] }) {
                       <span className="flex items-center gap-2 text-xs text-zinc-400 mt-1">
                         <span className="text-indigo-600">{a.source}</span>
                         {a.tags?.[0] && (
-                          <span className="tech-mono">#{a.tags[0]}</span>
+                          <span className="tech-mono">#{tagZh(a.tags[0])}</span>
                         )}
                       </span>
                     </a>

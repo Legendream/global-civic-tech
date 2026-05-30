@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS articles (
   content_snippet TEXT,
   content_snippet_zh TEXT,
   processed BOOLEAN DEFAULT FALSE,
+  relevance SMALLINT,  -- 公民科技相關性 0~2；NULL=未評分（舊資料，照常顯示）
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

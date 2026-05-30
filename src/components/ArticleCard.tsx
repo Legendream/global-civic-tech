@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { type Article } from "@/lib/supabase";
 import { useBookmarks } from "@/lib/bookmarks";
+import { tagZh } from "@/lib/tags";
 
 const FLAG_EMOJI: Record<string, string> = {
   TW: "🇹🇼", US: "🇺🇸", GB: "🇬🇧", DE: "🇩🇪", FR: "🇫🇷",
@@ -25,9 +26,11 @@ export default function ArticleCard({
 
   const title = isZh ? (article.title_zh ?? article.title_original) : (article.title_en ?? article.title_original);
   const summary = isZh ? article.summary_zh : article.summary_en;
-  const preview = isZh
+  const previewRaw = isZh
     ? (article.content_snippet_zh ?? article.content_snippet ?? summary)
     : (article.content_snippet ?? summary);
+  // 沒有內文的文章，預覽會退回成標題；此時不顯示重複的預覽列
+  const preview = previewRaw?.trim() && previewRaw.trim() !== title.trim() ? previewRaw : null;
   const flag = article.country_code ? FLAG_EMOJI[article.country_code] ?? "🌐" : "🌐";
   const date = article.published_at
     ? new Date(article.published_at).toLocaleDateString(isZh ? "zh-TW" : "en-US", {
@@ -102,7 +105,7 @@ export default function ArticleCard({
               key={tag}
               className="px-1.5 py-0.5 bg-zinc-50 text-zinc-400 text-xs rounded border border-zinc-100"
             >
-              {tag}
+              {isZh ? tagZh(tag) : tag}
             </span>
           ))}
         </div>

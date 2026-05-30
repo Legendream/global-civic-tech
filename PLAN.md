@@ -61,19 +61,23 @@ global-civic-tech/
 │   │   └── request.ts                  ← getRequestConfig，載入 messages
 │   │
 │   ├── lib/
-│   │   ├── supabase.ts                 ← Supabase client + Article / DailyDigest 型別
+│   │   ├── supabase.ts                 ← Supabase client + Article / DailyDigest 型別 + isRelevant() 雜訊過濾
+│   │   ├── tags.ts                     ← 主題分類單一來源：ALLOWED_TAGS(15類) + TAG_ZH 對照
 │   │   └── bookmarks.tsx               ← BookmarkProvider，收藏狀態存 localStorage
 │   │
 │   └── proxy.ts                        ← Next.js 16 的 middleware（next-intl routing）
 │
 ├── scripts/                            ← 資料管道，用 `npx tsx` 執行
 │   ├── fetch.ts                        ← 抓 RSS feeds + GitHub API → Supabase
-│   ├── process.ts                      ← DeepL 翻譯 + Claude 摘要 → 更新 articles
+│   ├── process.ts                      ← 翻譯前相關性預檢 → DeepL 翻譯 + Claude 摘要/標籤/相關性評分 → 更新 articles
+│   ├── reprocess.ts                    ← 一次性：重生歷史文章的真摘要 + 15 類標籤（修舊 bug）
+│   ├── export-corpus.ts                ← 把語料匯出 output/corpus.json 供主題分析（不花 API）
 │   ├── digest.ts                       ← 彙整當日文章 → 生成 daily_digests
 │   └── audio.ts                        ← 當日摘要 → OpenAI TTS → mp3 上傳 Supabase Storage
 │
 ├── supabase/
-│   └── schema.sql                      ← 建立 articles、daily_digests 兩張表 + RLS + GRANT
+│   ├── schema.sql                      ← 建立 articles、daily_digests 兩張表 + RLS + GRANT（含 relevance 欄位）
+│   └── migration_2026-05_relevance.sql ← 既有專案加 relevance 欄位（已執行）
 │
 ├── messages/
 │   ├── zh.json                         ← 繁體中文 UI 字串
@@ -111,6 +115,7 @@ global-civic-tech/
 | content_snippet | TEXT | RSS 原文片段 |
 | content_snippet_zh | TEXT | RSS 原文片段繁中翻譯 |
 | processed | BOOLEAN | false = 尚未翻譯/摘要 |
+| relevance | SMALLINT | 公民科技相關性 2/1/0；NULL=未評分（舊資料，前端照常顯示）。前端只濾掉 0（雜訊） |
 | created_at | TIMESTAMPTZ | 寫入時間 |
 
 ### `daily_digests`
@@ -133,16 +138,17 @@ GitHub Actions（每日 08:00 台灣時間）
   ↓
 scripts/fetch.ts
   從 23 個 RSS 來源 + GitHub Topics API 抓文章
+  GitHub 查詢已收緊：stars>=10、pushed>2024、且過濾無描述 repo
   upsert 進 articles（processed = false）
   ↓
 scripts/process.ts
   取出 processed = false 的文章（批次 BATCH_SIZE=150）
-  DeepL API → title_zh / content_snippet_zh（title_en 直接沿用英文原標題）
-  Claude API → summary_zh / tags
-  更新 processed = true
+  ① 翻譯前相關性預檢（Claude，僅英文標題）：明顯雜訊 → relevance=0、跳過翻譯與摘要（省 DeepL/Claude）
+  ② 其餘：DeepL → title_zh / content_snippet_zh；Claude → summary_zh / tags / relevance（0–2）
+  更新 processed = true（relevance=0 的雜訊文章前端會隱藏）
   ↓
 scripts/digest.ts
-  取出今日 processed = true 的文章
+  取出今日 processed = true 且 relevance≠0 的文章
   Claude API → 繁中每日摘要報告
   upsert 進 daily_digests
   ↓
@@ -151,6 +157,46 @@ scripts/audio.ts
   逐段呼叫 OpenAI TTS 後串接成單一 mp3
   上傳 Supabase Storage，寫回 audio_url（附 ?v= 破除快取）
 ```
+
+---
+
+## 主題分類與降噪機制（2026-05 重構）
+
+> 背景：早期所有文章標籤都被貼成單一 `civic-tech`、摘要全部等於標題，且大量非公民科技雜訊（美國聯邦人事、國防、政治八卦）混入。本次重構徹底解決。**改任何分類/抓取/過濾邏輯前務必先讀懂以下機制，以免改壞。**
+
+### 1. 為什麼會有雜訊（根因，避免日後忘記）
+- **來源太廣**：Federal News Network（曾佔語料 22%）等「綜合政府新聞」媒體的 RSS 把所有報導全倒進來（退休金、工會、國防、人事），多數非公民科技。Nextgov / GovTech / FedScoop / StateScoop 等政府 IT 綜合媒體範圍也比公民科技廣。
+- **無條件抓取**：`fetch.ts` 對每個來源 `slice(0, 20)` 抓最新 20 篇，不判斷內容。
+- **GitHub topic 誤抓**：`govtech` / `open-data` 等 topic 會抓到無關 repo（測試工具、行銷產品、無描述專案）。
+- **過去沒有相關性把關**，照單全收。
+- 真正專注的來源（mySociety、Decidim、OKFN、Code for Africa/Japan、CivicDataLab、OGP…）雜訊極低，但發文量小，易被綜合媒體淹沒。
+
+### 2. 主題分類（15 類，單一來源）
+- **唯一來源：`src/lib/tags.ts`**（`ALLOWED_TAGS` 可指派清單 + `TAG_ZH` 顯示對照 + `isRelevant()`）。`process.ts` / `reprocess.ts` 皆 import 它，**不要再各自維護清單**。
+- 15 類：open-data 開放資料、transparency 政府透明、e-participation 數位參與、ai-governance AI 治理、election 選舉科技、environment 環境永續、anti-corruption 反腐倡廉、accessibility 數位平權、open-source 開放原始碼、digital-rights 數位人權、public-service 公共服務、cybersecurity 資訊安全、procurement 政府採購、smart-city 智慧城市、digital-health 數位健康。
+- `civic-tech` **已退役**：不再指派（不在 ALLOWED_TAGS），僅 `TAG_ZH` 保留以顯示殘留舊資料。
+- 由來：資料驅動分析 588 篇語料歸納（`scripts/export-corpus.ts` 匯出 → 人工檢視）。原 11 類缺口補上 cybersecurity / procurement / smart-city / digital-health 四類。
+- 提示詞要求「選 **1–4 個，寧缺勿濫**」：不硬湊，內容單薄可只給 1 個；完全不切合則回 0 個（reprocess 視為非公民科技而略過）。
+
+### 3. 相關性評分 relevance（0 / 1 / 2）
+- 含義：**2** = 明確公民科技；**1** = 政府/公共事務相關但非典型（政府 IT、採購、人事）或不確定；**0** = 明確無關（純國防、個人理財、運動、名人、軟體庫、職稱）。
+- **NULL** = 未評分。`reprocess.ts` 不寫 relevance，故歷史文章維持 NULL → 照常顯示（當初的編輯決定：保留既有邊緣文章可見）。
+- **前端不在查詢層依賴此欄位**，而是抓回後用 `isRelevant(a)`（`a.relevance == null || a.relevance >= 1`，見 `supabase.ts`）在 JS 端過濾。欄位未建立時 `undefined` 也算顯示 → **遷移/部署先後順序不會搞砸網站**。
+- **套用過濾處**：`page.tsx`（今日/最新）、`DigestList.tsx`（按日期＋搜尋全部）、`digest/page.tsx`（統計）、`digest.ts`（每日報告與 article_count）。**未來新增任何「列文章」查詢都要記得套 `isRelevant`**（地圖 `MapClient` 目前尚未套，待優化）。
+- 欄位遷移：`supabase/migration_2026-05_relevance.sql`。
+
+### 4. 多層降噪策略（由源頭到輸出）
+1. **來源層（`fetch.ts`）**：GitHub 查詢收緊為 `stars:>=10` + `pushed:>2024-01-01`，並在程式碼過濾掉「無描述」repo。Federal News Network 經評估**保留**（偶有好文如 CISA），交由後面把關處理。
+2. **翻譯前預檢（`process.ts` `quickRelevanceCheck`）**：每篇先用**英文原標題**做一次極省（`max_tokens=5`）的 Claude 判斷。回 **0**（明確雜訊）→ 直接寫 `processed=true, relevance=0`、**跳過 DeepL 翻譯與整篇摘要**，省下整篇 API 花費。設計**偏保守**：不確定一律回 1（保留），避免誤殺好文章。
+3. **完整評分（`process.ts` `summarizeWithClaude`）**：通過預檢者才翻譯，由含內文的完整呼叫回 summary_zh / tags / relevance（更準）。
+4. **輸出層過濾**：前端與 `digest.ts` 用 `isRelevant` 排除 relevance=0。
+- 效果：每日約 2–3 成雜訊在花錢前被攔；資料也更乾淨。
+
+### 5. 一次性歷史修復（已執行，2026-05-30）
+- `scripts/reprocess.ts`：對 588 篇歷史文章重生真摘要 + 重貼 15 類標籤（**不寫 relevance**，故歷史照常顯示）。結果：575 篇成功（其中無內文者僅重貼標籤、摘要維持標題）、13 篇被模型判定零標籤＝非公民科技。
+- 那 13 篇確認雜訊以一次性 Supabase 更新設 `relevance=0` 隱藏（鎖定條件：reprocess 後仍掛著 `civic-tech` 標籤者）。
+- `needsReprocess` 條件：tags 為空或僅 civic-tech、或（有內文卻）摘要等於標題 才重處理 → **可安全重跑**，不會反覆動已修好的。
+- 空標籤在 reprocess 視為「非公民科技，略過」（不寫入、不算失敗）；只有解析/連線錯誤才算 fail，重跑時重試。
 
 ---
 
@@ -185,7 +231,7 @@ scripts/audio.ts
 
 ---
 
-## 目前狀態（2026-05-29）
+## 目前狀態（2026-05-31）
 
 ### 已完成
 - [x] Next.js 16 專案、Supabase schema、繁中前端、四階段資料管道（fetch / process / digest / audio）
@@ -215,16 +261,28 @@ scripts/audio.ts
   - 靈感庫空狀態：有收藏才顯示備份警告與匯出/匯入按鈕
   - `DigestContent.tsx`：摘要純文字三層排版（`【Section】` H3 / 短詞 H4 / 段落），修正 H3 `text-xs`（12px）< 正文 `text-sm`（14px）的階層 bug
   - 導覽列「每日摘要」與首頁區塊標題「今日摘要」均改為「當日摘要」
+- [x] **主題分類重構 + 雜訊治理**（2026-05-30~31，詳見〈主題分類與降噪機制〉專章）
+  - 修復 Claude JSON 程式碼框解析 bug（曾致 587 篇摘要＝標題、標籤全 `civic-tech`）
+  - 分類擴為 15 類、集中到 `src/lib/tags.ts` 單一來源；歷史報告篩選「標籤」改稱「主題」、顯示改繁中
+  - 新增 `relevance` 欄位 + `isRelevant()` 過濾（前端列表、報告統計、`digest.ts` 全部套用）
+  - 多層降噪：`fetch.ts` 收緊 GitHub 查詢；`process.ts` 翻譯前相關性預檢（雜訊不花 DeepL/Claude）；`digest.ts` 排除 relevance=0
+  - `scripts/reprocess.ts` 一次性重生 575 篇真摘要＋15 類標籤；13 篇確認雜訊設 `relevance=0` 隱藏
+  - `ArticleCard`：預覽文字與標題相同時不顯示重複列（無內文文章不再標題重複兩次）
+  - 首頁「當日摘要」pending 卡補上「每日約 08:00 更新」時間提示，減少使用者困惑
+  - `supabase/migration_2026-05_relevance.sql` 已在正式 DB 執行
 
 ### 待完成
 - [ ] 確認 GitHub Actions 排程穩定執行（每日 UTC 00:00）
 - [ ] 定期驗證各 RSS feed URL 仍有效
+- [ ] 下次每日排程後，驗證翻譯前預檢與降噪在實務上的攔截效果（觀察 relevance=0 比例是否合理、有無誤殺）
 
 ### 後續優化（可選）
 - [ ] `MapClient.tsx` 的 `COUNTRY_COORDS` 可補充更多國家座標
+- [ ] `MapClient.tsx` 套用 `isRelevant` 過濾，使地圖也排除 relevance=0 雜訊（目前尚未套）
 - [ ] 加入 Email 推送（每日摘要寄給自己）
 - [ ] 加入日期範圍篩選
 - [ ] 移除已停用的 `CasesClient.tsx`（/cases 已改為 redirect，此元件不再被引用）
+- [ ] 第二層自由關鍵字（封閉 15 主類 + 每篇 1–2 個自由關鍵字）+ 季度重新聚類檢視，作為分類長期演進機制
 
 ---
 
@@ -244,9 +302,17 @@ npx tsx scripts/audio.ts
 DIGEST_DATE=2026-04-30 npx tsx scripts/digest.ts
 DIGEST_DATE=2026-04-30 npx tsx scripts/audio.ts
 
-# Build 檢查
+# 維護用腳本
+npx tsx scripts/export-corpus.ts                      # 匯出語料供主題分析（不花 API）
+DRY_RUN=true LIMIT=12 npx tsx scripts/reprocess.ts    # 重生摘要+標籤 預覽（不寫入）
+npx tsx scripts/reprocess.ts                          # 正式重生（只處理需重處理的文章，可重跑）
+
+# Build / 型別檢查
 npm run build
+npx tsc --noEmit
 ```
+
+> **注意（呼叫 Claude 的腳本）**：`process.ts` / `digest.ts` / `reprocess.ts` 需 `ANTHROPIC_API_KEY`，請在自己的終端機執行（部分代理環境會擋此變數）。`fetch.ts` / `export-corpus.ts` / `audio.ts` 不需 Claude 金鑰。
 
 ---
 
@@ -257,3 +323,5 @@ npm run build
 - **Supabase**：`supabase.ts` 用 fallback placeholder 讓 build 不因缺 env 而失敗；runtime 需真實 keys
 - **`force-dynamic`**：資料頁面均加 `export const dynamic = "force-dynamic"`，避免 build 時靜態化
 - **OpenAI TTS**：單次請求 input 上限 4096 字元，故 `audio.ts` 需切段；產生的 mp3 在瀏覽器中 `duration` 會回報為 `Infinity`，由 `AudioPlayer.tsx` 以 seek-to-end 技巧修正
+- **Claude JSON 回覆**：Haiku 常把 JSON 包在 ` ```json ... ``` ` 程式碼框裡，直接 `JSON.parse` 會失敗。`process.ts` / `reprocess.ts` 都先 `replace(/```json|```/g, "")` 再用 regex 抓 `{...}` / `[...]`。曾因此 bug 導致 587 篇摘要全變標題、標籤全變 civic-tech
+- **`relevance` 欄位**：用 `supabase/migration_2026-05_relevance.sql` 加欄位。前端**不在查詢層依賴它**，而是抓回後用 `isRelevant()`（`supabase.ts`）在 JS 端過濾（`relevance == null || >= 1`）——欄位未建立時 `undefined` 也視為顯示，故遷移與部署先後順序不影響網站，只是遷移＋`process.ts` 跑過後才會真正開始隱藏 0 分雜訊

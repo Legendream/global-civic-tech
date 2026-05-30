@@ -25,6 +25,7 @@ type Article = {
   country_code: string | null;
   url: string;
   published_at: string | null;
+  relevance: number | null;
 };
 
 async function generateDigest(
@@ -76,10 +77,10 @@ async function main() {
   console.log(`Generating digest for ${targetDate}...`);
 
   // Get articles published today (or created today if no published_at)
-  const { data: articles, error } = await supabase
+  const { data: rawArticles, error } = await supabase
     .from("articles")
     .select(
-      "id, title_zh, title_en, summary_zh, summary_en, source, country, country_code, url, published_at"
+      "id, title_zh, title_en, summary_zh, summary_en, source, country, country_code, url, published_at, relevance"
     )
     .eq("processed", true)
     .gte("created_at", `${targetDate}T00:00:00.000Z`)
@@ -90,12 +91,15 @@ async function main() {
     process.exit(1);
   }
 
-  if (!articles || articles.length === 0) {
-    console.log("No processed articles today.");
+  // 排除雜訊（relevance=0），與前端顯示一致；也避免把未翻譯的雜訊餵進報告
+  const articles = (rawArticles ?? []).filter((a) => a.relevance == null || a.relevance >= 1);
+
+  if (articles.length === 0) {
+    console.log("No relevant processed articles today.");
     return;
   }
 
-  console.log(`Found ${articles.length} articles. Generating digests...`);
+  console.log(`Found ${articles.length} relevant articles. Generating digests...`);
 
   const content_zh = await generateDigest(articles, "zh");
 

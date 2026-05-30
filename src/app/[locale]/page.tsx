@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { getTranslations } from "next-intl/server";
-import { supabase, type Article, type DailyDigest } from "@/lib/supabase";
+import { supabase, isRelevant, type Article, type DailyDigest } from "@/lib/supabase";
 import ArticleCard from "@/components/ArticleCard";
 import AudioPlayer from "@/components/AudioPlayer";
 import DigestErrorCard from "@/components/DigestErrorCard";
@@ -37,7 +37,7 @@ async function getTodayArticles(date: string): Promise<Article[]> {
     .gte("created_at", `${date}T00:00:00.000Z`)
     .lte("created_at", `${date}T23:59:59.999Z`)
     .order("published_at", { ascending: false });
-  return data ?? [];
+  return (data ?? []).filter(isRelevant);
 }
 
 async function getRecentArticles(): Promise<Article[]> {
@@ -47,8 +47,8 @@ async function getRecentArticles(): Promise<Article[]> {
     .eq("processed", true)
     .neq("source", "GitHub")
     .order("published_at", { ascending: false })
-    .limit(12);
-  return data ?? [];
+    .limit(18);
+  return (data ?? []).filter(isRelevant).slice(0, 12);
 }
 
 function DigestStatRow({ articles, date }: { articles: Article[]; date: string }) {
@@ -90,6 +90,17 @@ export default async function HomePage({
       ? await getTodayArticles(today)
       : await getRecentArticles();
   const isZh = locale === "zh";
+
+  // Taiwan time (UTC+8) for pending state messaging
+  const nowUTC = new Date();
+  const twHour = (nowUTC.getUTCHours() + 8) % 24;
+  const twMinuteOfDay = twHour * 60 + nowUTC.getUTCMinutes();
+  const pendingMsg =
+    twMinuteOfDay < 8 * 60
+      ? { title: "今日摘要尚未生成", body: "每日 08:00 自動彙整，今天的內容稍後就會出現。", sub: "下次更新 · 今日 08:00 (UTC+8)" }
+      : twMinuteOfDay < 9 * 60 + 30
+      ? { title: "今日摘要正在生成中", body: "排程已在 08:00 啟動，通常需要幾分鐘完成，稍後重新整理頁面即可看到。", sub: "GitHub Actions 排程執行中，預計數分鐘後出現" }
+      : { title: "今日摘要尚未出現", body: "預計 08:00 的更新延遲了，系統可能暫時忙碌，請稍後再試。", sub: "若持續未更新，歡迎至 GitHub 回報問題" };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 space-y-12">
@@ -136,11 +147,11 @@ export default async function HomePage({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p className="text-zinc-900 font-medium mb-1">今日摘要尚未生成</p>
+            <p className="text-zinc-900 font-medium mb-1">{pendingMsg.title}</p>
             <p className="text-sm text-zinc-500 max-w-sm mx-auto leading-relaxed">
-              每日約台灣時間 08:00 自動彙整，稍後回來即可看到今天的內容。
+              {pendingMsg.body}
             </p>
-            <p className="text-xs text-zinc-400 tech-mono mt-3 whitespace-nowrap">下次更新 · 每日 08:00 (UTC+8)</p>
+            <p className="text-xs text-zinc-400 tech-mono mt-3">{pendingMsg.sub}</p>
           </div>
         )}
 
