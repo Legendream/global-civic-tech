@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { getTranslations } from "next-intl/server";
-import { supabase, type DailyDigest } from "@/lib/supabase";
+import { supabase, isRelevant, type DailyDigest } from "@/lib/supabase";
 import DigestList from "@/components/DigestList";
 
 async function getDigests(): Promise<DailyDigest[]> {
@@ -16,11 +16,13 @@ async function getDigests(): Promise<DailyDigest[]> {
 async function getArchiveStats() {
   const { data } = await supabase
     .from("articles")
-    .select("country_code, tags")
+    .select("country_code, tags, relevance")
     .eq("processed", true);
   if (!data) return { countries: 0, tags: 0 };
-  const countries = new Set(data.map((a) => a.country_code).filter(Boolean)).size;
-  const tags = new Set(data.flatMap((a) => (a.tags as string[]) || [])).size;
+  // 與前端篩選一致：排除隱藏的雜訊文章（relevance=0）
+  const visible = data.filter(isRelevant);
+  const countries = new Set(visible.map((a) => a.country_code).filter(Boolean)).size;
+  const tags = new Set(visible.flatMap((a) => (a.tags as string[]) || [])).size;
   return { countries, tags };
 }
 

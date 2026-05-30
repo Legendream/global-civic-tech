@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { supabase, type DailyDigest, type Article } from "@/lib/supabase";
+import { supabase, isRelevant, type DailyDigest, type Article } from "@/lib/supabase";
+import { tagZh } from "@/lib/tags";
 import AudioPlayer from "./AudioPlayer";
 import ArticleCard from "./ArticleCard";
 import DigestContent from "./DigestContent";
@@ -47,7 +48,7 @@ export default function DigestList({
       .lte("created_at", `${selected}T23:59:59.999Z`)
       .order("published_at", { ascending: false })
       .then(({ data }) => {
-        setArticles(data ?? []);
+        setArticles((data ?? []).filter(isRelevant));
         setLoadingArticles(false);
       });
   }, [selected]);
@@ -61,7 +62,7 @@ export default function DigestList({
       .eq("processed", true)
       .order("published_at", { ascending: false })
       .then(({ data }) => {
-        setAllArticles(data ?? []);
+        setAllArticles((data ?? []).filter(isRelevant));
         setLoadingAll(false);
       });
   }, [tab, allArticles.length]);
@@ -315,7 +316,7 @@ export default function DigestList({
 
               <div>
                 <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">
-                  {isZh ? "標籤" : "Tag"}
+                  {isZh ? "主題" : "Topic"}
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {["all", ...tags].map((tg) => (
@@ -328,7 +329,7 @@ export default function DigestList({
                           : "bg-white border border-zinc-200 text-zinc-600 hover:border-indigo-300 hover:text-indigo-600"
                       }`}
                     >
-                      {tg === "all" ? (isZh ? "全部" : "All") : tg}
+                      {tg === "all" ? (isZh ? "全部" : "All") : (isZh ? tagZh(tg) : tg)}
                     </button>
                   ))}
                 </div>

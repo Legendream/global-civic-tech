@@ -35,7 +35,7 @@
   "cases": {
     "title": "全部報導",
     "filterCountry": "國家 / 地區",
-    "filterTag": "標籤",
+    "filterTag": "主題",
     "filterAll": "全部",
     "noResults": "無符合條件的報導",
     "source": "來源",
@@ -68,7 +68,7 @@
     "navHome": "每日摘要",
     "navHomeDesc": "想快速跟上進度，就從這裡開始——每天一份摘要報告，也能用語音收聽。",
     "navDigest": "歷史報告",
-    "navDigestDesc": "想查找特定主題或國家的過往案例，可在此搜尋、依標籤與地區篩選。",
+    "navDigestDesc": "想查找特定主題或國家的過往案例，可在此搜尋、依主題與地區篩選。",
     "navMap": "地圖",
     "navMapDesc": "想了解各國做法，用世界地圖瀏覽不同地區的公民科技實踐。",
     "navBookmarks": "書籤",

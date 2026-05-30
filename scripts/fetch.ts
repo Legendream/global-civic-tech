@@ -216,14 +216,18 @@ async function fetchGitHubRepos() {
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
+  // 收緊查詢：要求星數 ≥10 且近期有更新，過濾掉大量低品質/無關 repo
   const res = await fetch(
-    "https://api.github.com/search/repositories?q=topic:civic-tech+OR+topic:govtech+OR+topic:open-data+pushed:>2020-01-01&sort=updated&per_page=20",
+    "https://api.github.com/search/repositories?q=topic:civic-tech+OR+topic:govtech+OR+topic:open-data+stars:>=10+pushed:>2024-01-01&sort=updated&per_page=20",
     { headers }
   );
   if (!res.ok) return [];
 
   const data = await res.json();
-  return (data.items ?? []).map((repo: Record<string, unknown>) => ({
+  return (data.items ?? [])
+    // 沒有描述的 repo 多半是雜訊（例：「無描述」「{build}」），略過
+    .filter((repo: Record<string, unknown>) => !!(repo.description as string | null)?.trim())
+    .map((repo: Record<string, unknown>) => ({
     title_original: (repo.description as string | null) || (repo.name as string),
     url: repo.html_url as string,
     source: "GitHub",
