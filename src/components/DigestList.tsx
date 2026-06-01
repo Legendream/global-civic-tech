@@ -158,6 +158,18 @@ export default function DigestList({
           </div>
 
           {current ? (
+            current.article_count === 0 ? (
+              <div className="bg-white border border-dashed border-zinc-200 rounded-xl p-10 text-center space-y-2">
+                <p className="text-zinc-600 text-sm font-medium">
+                  {isZh ? "當日無新文章" : "No new articles"}
+                </p>
+                <p className="text-zinc-400 text-xs">
+                  {isZh
+                    ? "RSS 來源當天未發布新內容，系統已正常執行"
+                    : "RSS sources published no new content that day"}
+                </p>
+              </div>
+            ) : (
             <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
               {current.audio_url && (
                 <AudioPlayer
@@ -219,6 +231,7 @@ export default function DigestList({
                 )}
               </div>
             </div>
+            )
           ) : (
             <div className="bg-white border border-dashed border-zinc-200 rounded-xl p-10 text-center text-zinc-400">
               {isZh ? "請選擇日期" : "Select a date"}

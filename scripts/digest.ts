@@ -95,7 +95,18 @@ async function main() {
   const articles = (rawArticles ?? []).filter((a) => a.relevance == null || a.relevance >= 1);
 
   if (articles.length === 0) {
-    console.log("No relevant processed articles today.");
+    console.log("No relevant processed articles today. Saving empty record.");
+    const { error: emptyUpsertError } = await supabase
+      .from("daily_digests")
+      .upsert(
+        { date: targetDate, content_zh: "", content_en: "", article_count: 0 },
+        { onConflict: "date" }
+      );
+    if (emptyUpsertError) {
+      console.error("Supabase upsert error:", emptyUpsertError);
+      process.exit(1);
+    }
+    console.log(`Empty digest record saved for ${targetDate}.`);
     return;
   }
 
