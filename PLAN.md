@@ -154,8 +154,9 @@ scripts/digest.ts
   ↓
 scripts/audio.ts
   取出當日繁中摘要，依段落/句子切成 ≤3800 字多段
-  逐段呼叫 OpenAI TTS 後串接成單一 mp3
-  上傳 Supabase Storage，寫回 audio_url（附 ?v= 破除快取）
+  逐段呼叫 OpenAI TTS 後串接成單一 mp3（每段最多重試 3 次，間隔 10s/20s）
+  3 次仍失敗 → exit 1（GitHub Actions 標記失敗並寄 email 通知）
+  成功則上傳 Supabase Storage，寫回 audio_url（附 ?v= 破除快取）
 ```
 
 ---
@@ -231,7 +232,7 @@ scripts/audio.ts
 
 ---
 
-## 目前狀態（2026-05-31）
+## 目前狀態（2026-06-15）
 
 ### 已完成
 - [x] Next.js 16 專案、Supabase schema、繁中前端、四階段資料管道（fetch / process / digest / audio）
@@ -261,6 +262,7 @@ scripts/audio.ts
   - 靈感庫空狀態：有收藏才顯示備份警告與匯出/匯入按鈕
   - `DigestContent.tsx`：摘要純文字三層排版（`【Section】` H3 / 短詞 H4 / 段落），修正 H3 `text-xs`（12px）< 正文 `text-sm`（14px）的階層 bug
   - 導覽列「每日摘要」與首頁區塊標題「今日摘要」均改為「當日摘要」
+- [x] **audio.ts 防錯機制**（2026-06-15）：TTS 呼叫失敗時自動重試最多 3 次（間隔 10s / 20s），3 次仍失敗則以 exit 1 結束，讓 GitHub Actions 標記步驟失敗並自動寄通知信；2026-06-12/13 發生過 TTS `fetch failed` 網路錯誤（靜默跳過），本次修復確保日後同樣情況會主動通知
 - [x] **主題分類重構 + 雜訊治理**（2026-05-30~31，詳見〈主題分類與降噪機制〉專章）
   - 修復 Claude JSON 程式碼框解析 bug（曾致 587 篇摘要＝標題、標籤全 `civic-tech`）
   - 分類擴為 15 類、集中到 `src/lib/tags.ts` 單一來源；歷史報告篩選「標籤」改稱「主題」、顯示改繁中
@@ -323,6 +325,6 @@ npx tsc --noEmit
 - **Leaflet**：使用 raw Leaflet（非 react-leaflet），`MapClient.tsx` 以 `useEffect` + `Promise.all([import("leaflet"), import("leaflet/dist/leaflet.css")])` 動態載入；`divIcon` 節點大小 `22 + min(count,8)*4` px；需 `setMapReady` state 觸發 marker 重繪 effect
 - **Supabase**：`supabase.ts` 用 fallback placeholder 讓 build 不因缺 env 而失敗；runtime 需真實 keys
 - **`force-dynamic`**：資料頁面均加 `export const dynamic = "force-dynamic"`，避免 build 時靜態化
-- **OpenAI TTS**：單次請求 input 上限 4096 字元，故 `audio.ts` 需切段；產生的 mp3 在瀏覽器中 `duration` 會回報為 `Infinity`，由 `AudioPlayer.tsx` 以 seek-to-end 技巧修正
+- **OpenAI TTS**：單次請求 input 上限 4096 字元，故 `audio.ts` 需切段；產生的 mp3 在瀏覽器中 `duration` 會回報為 `Infinity`，由 `AudioPlayer.tsx` 以 seek-to-end 技巧修正。TTS 呼叫有 3 次自動重試（10s/20s 間隔），最終失敗以 exit 1 通知（GitHub Actions → email）；週末因無文章不會建立摘要（6/7、5/31 等），故歷史清單不會出現那幾天的日期
 - **Claude JSON 回覆**：Haiku 常把 JSON 包在 ` ```json ... ``` ` 程式碼框裡，直接 `JSON.parse` 會失敗。`process.ts` / `reprocess.ts` 都先 `replace(/```json|```/g, "")` 再用 regex 抓 `{...}` / `[...]`。曾因此 bug 導致 587 篇摘要全變標題、標籤全變 civic-tech
 - **`relevance` 欄位**：用 `supabase/migration_2026-05_relevance.sql` 加欄位。前端**不在查詢層依賴它**，而是抓回後用 `isRelevant()`（`supabase.ts`）在 JS 端過濾（`relevance == null || >= 1`）——欄位未建立時 `undefined` 也視為顯示，故遷移與部署先後順序不影響網站，只是遷移＋`process.ts` 跑過後才會真正開始隱藏 0 分雜訊

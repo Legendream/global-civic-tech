@@ -17,25 +17,41 @@ const TTS_CHAR_LIMIT = 4096; // OpenAI TTS 單次請求的 input 字元上限
 const CHUNK_SIZE = 3800; // 切段目標長度，保留餘裕在段落／句子邊界斷句
 
 async function textToSpeech(text: string): Promise<Buffer> {
-  const res = await fetch("https://api.openai.com/v1/audio/speech", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY!}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "tts-1",
-      voice: "nova",
-      input: text.slice(0, TTS_CHAR_LIMIT),
-      response_format: "mp3",
-    }),
-  });
+  const MAX_RETRIES = 3;
+  let lastError: Error | undefined;
 
-  if (!res.ok) {
-    throw new Error(`OpenAI TTS error: ${res.status} ${await res.text()}`);
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetch("https://api.openai.com/v1/audio/speech", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY!}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "tts-1",
+          voice: "nova",
+          input: text.slice(0, TTS_CHAR_LIMIT),
+          response_format: "mp3",
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`OpenAI TTS error: ${res.status} ${await res.text()}`);
+      }
+
+      return Buffer.from(await res.arrayBuffer());
+    } catch (err) {
+      lastError = err as Error;
+      if (attempt < MAX_RETRIES) {
+        const delay = attempt * 10000;
+        console.warn(`TTS attempt ${attempt} failed: ${lastError.message}. Retrying in ${delay / 1000}s...`);
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
   }
 
-  return Buffer.from(await res.arrayBuffer());
+  throw lastError!;
 }
 
 // 依段落／句子切成多段，避開 OpenAI TTS 單次 4096 字元上限
@@ -124,8 +140,8 @@ async function main() {
     }
     mp3 = Buffer.concat(parts);
   } catch (err) {
-    console.warn("TTS failed, skipping audio:", (err as Error).message);
-    return;
+    console.error("TTS failed after all retries:", (err as Error).message);
+    process.exit(1);
   }
 
   const filename = `digest-${targetDate}.mp3`;
