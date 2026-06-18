@@ -206,6 +206,22 @@ const SOURCES: FeedSource[] = [
     language: "en",
     tags: ["digital-rights", "civic-tech", "press-freedom"],
   },
+  {
+    name: "Open Culture Foundation",
+    url: "https://ocf.tw/feed.xml",
+    country: "Taiwan",
+    country_code: "TW",
+    language: "zh",
+    tags: ["open-data", "open-source", "civic-tech", "transparency"],
+  },
+  {
+    name: "Open Source Society PH",
+    url: "https://blog.ossph.org/feed",
+    country: "Philippines",
+    country_code: "PH",
+    language: "en",
+    tags: ["civic-tech", "open-source", "philippines"],
+  },
 ];
 
 // GitHub Topics API for civic-tech / govtech / open-data repos updated recently

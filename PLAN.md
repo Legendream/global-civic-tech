@@ -43,7 +43,7 @@ global-civic-tech/
 │   │       ├── cases/page.tsx          ← 舊路由，redirect → /digest
 │   │       ├── map/page.tsx            ← 全球地圖
 │   │       ├── bookmarks/page.tsx      ← 靈感庫（收藏的報導）
-│   │       └── about/page.tsx          ← 關於頁（網站介紹 + 「該怎麼開始使用」卡片 + 23 個來源表格）
+│   │       └── about/page.tsx          ← 關於頁（masthead hero + 收錄標準 + 「該怎麼開始使用」導覽連結 + 來源表格，數量由 SOURCES.length 動態帶入文案）
 │   │
 │   ├── components/
 │   │   ├── Navbar.tsx                  ← 導覽列 + accent 品牌點 + gradient 底線 + 收藏數徽章（client）
@@ -190,8 +190,14 @@ scripts/audio.ts
 1. **來源層（`fetch.ts`）**：GitHub 查詢收緊為 `stars:>=10` + `pushed:>2024-01-01`，並在程式碼過濾掉「無描述」repo。Federal News Network 經評估**保留**（偶有好文如 CISA），交由後面把關處理。
 2. **翻譯前預檢（`process.ts` `quickRelevanceCheck`）**：每篇先用**英文原標題**做一次極省（`max_tokens=5`）的 Claude 判斷。回 **0**（明確雜訊）→ 直接寫 `processed=true, relevance=0`、**跳過 DeepL 翻譯與整篇摘要**，省下整篇 API 花費。設計**偏保守**：不確定一律回 1（保留），避免誤殺好文章。
 3. **完整評分（`process.ts` `summarizeWithClaude`）**：通過預檢者才翻譯，由含內文的完整呼叫回 summary_zh / tags / relevance（更準）。
-4. **輸出層過濾**：前端與 `digest.ts` 用 `isRelevant` 排除 relevance=0。
-- 效果：每日約 2–3 成雜訊在花錢前被攔；資料也更乾淨。
+4. **輸出層過濾（兩段門檻）**：
+   - **瀏覽從寬**：前端文章列表/地圖用 `isRelevant`（`relevance == null || >= 1`）排除 relevance=0，保留邊緣案例（1）可供瀏覽。
+   - **摘要從嚴**：`digest.ts` 只收 `relevance === 2`（明確公民科技），邊緣案例（1）不進每日報告與語音，讓 Claire 挑電子報素材的摘要保持高訊噪比。
+- 效果：每日約 2–3 成雜訊在花錢前被攔；資料也更乾淨；每日摘要只剩明確公民科技。
+
+> **2026-06-18 調整（摘要從嚴、瀏覽從寬）**：背景是 6/18 摘要 30 則中約 26 則來自美國綜合性政府 IT/新聞媒體（Federal News Network 單一來源就 10 則），多為政治、國防、人事等「政府相關但非公民科技」內容。修法：① `digest.ts` 過濾改為 `relevance === 2`；② `process.ts` 評分提示詞嵌入公民科技定義，明示政府 IT/採購/人事/國防/政治一律 1 或 0、不給 2；③ 關於頁新增「收錄標準」段落（`about.criteria*`），與評分提示詞共用同一份定義。後續可再做來源層配額（限制單一綜合媒體每日則數）。
+>
+> **2026-06-18 關於頁改版**：① Hero 改用全站 masthead 語彙（`.mh-*`：四角 tick、live 點 eyebrow、大字標題、accent 左邊線效益句），取代原本平淡的標題＋兩段灰字；② 新增「收錄標準」卡（定義＋收錄/不收錄對照＋AI 評分說明）；③「該怎麼開始使用」卡片改為真連結（`<Link>`）、導覽列名稱對齊（當日摘要/歷史報告/全球地圖/靈感庫）；④ 來源表補齊為 25 個（原僅列 17），文案數量改由 `SOURCES.length` 動態插值（`t("sourcesDesc"/"step1", { count })`），永不再與表格脫鉤。**配色注意**：`globals.css` 只覆寫特定 indigo 色階為 accent（如 `indigo-600/50/900`、`border-indigo-100/200`、`text-indigo-400~700`）；用到清單外的色階（`bg-indigo-500`、`border-indigo-300`、`text-indigo-900/75` 等透明度變體）會 fallback 成 Tailwind 原生靛色，與 cyan 主視覺不符——務必只用被覆寫的色階。
 
 ### 5. 一次性歷史修復（已執行，2026-05-30）
 - `scripts/reprocess.ts`：對 588 篇歷史文章重生真摘要 + 重貼 15 類標籤（**不寫 relevance**，故歷史照常顯示）。結果：575 篇成功（其中無內文者僅重貼標籤、摘要維持標題）、13 篇被模型判定零標籤＝非公民科技。
@@ -203,13 +209,13 @@ scripts/audio.ts
 
 ## RSS 資料來源（scripts/fetch.ts）
 
-共 23 個 feed，加上 GitHub Topics API（`civic-tech` / `govtech` / `open-data`）。
+共 25 個 feed，加上 GitHub Topics API（`civic-tech` / `govtech` / `open-data`）。
 
 **美國 / 英國 / 澳洲**：mySociety、Beeck Center、GovTech Review、GDS Blog、Nextgov、Federal News Network、Government Technology、StateScoop、FedScoop、PublicTechnology、Smart Cities Dive
 
 **國際組織**：The GovLab、Endstate、OECD-OPSI、Open Government Partnership、Decidim、Open Contracting Partnership、Open Knowledge Foundation、Global Voices Advox
 
-**區域型（亞洲 / 非洲）**：Code for Africa、Code for Japan、CivicDataLab（India）、GovTech Singapore
+**區域型（亞洲 / 非洲）**：Code for Africa、Code for Japan、CivicDataLab（India）、GovTech Singapore、Open Culture Foundation（Taiwan）、Open Source Society PH（Philippines）
 
 > **注意**：RSS URL 可能會過期或改版，需定期確認是否仍有效。
 
@@ -273,10 +279,17 @@ scripts/audio.ts
   - 首頁「當日摘要」pending 卡補上「每日約 08:00 更新」時間提示，減少使用者困惑
   - `supabase/migration_2026-05_relevance.sql` 已在正式 DB 執行
 
+- [x] **新增亞洲來源**（2026-06-15，待 PR）
+  - 新增 Open Culture Foundation（台灣，`ocf.tw/feed.xml`）：開放資料、開源、數位治理，直接對應本專案主題，feed 驗證有效且持續更新
+  - 新增 Open Source Society PH（菲律賓，`blog.ossph.org/feed`）：偶有公民科技報導（BetterGov.ph 透明平台、Balota 選票工具），其餘文章交 AI 過濾，年費 < $0.01
+  - 研究過並排除：g0v blog（已停站）、沃草（內容為政治新聞非 govtech）、Code for Korea（無 RSS）、Safecast（輻射監測偏環境科學）、Newstapa / Civic Tech Japan / Code for Kanazawa（feed 無效或已停更）
+  - 來源總數：23 → 25
+
 ### 待完成
 - [ ] 確認 GitHub Actions 排程穩定執行（每日 UTC 00:00）
 - [ ] 定期驗證各 RSS feed URL 仍有效
 - [ ] 下次每日排程後，驗證翻譯前預檢與降噪在實務上的攔截效果（觀察 relevance=0 比例是否合理、有無誤殺）
+- [x] 上傳 2026-06-15 來源擴充變更至 GitHub（OCF + OSSPH）——2026-06-18 隨「摘要從嚴＋關於頁改版」一併提交
 
 ### 後續優化（可選）
 - [ ] **呈現「人＋AI 協作」的編輯流程（重點 insight）**：本站想傳達的核心理念之一，是一種新的「蒐集資料、產出知識」的流程——由人定方向與判斷、AI 協助查證與整理，且全程附可查證來源。需設計如何在網站上呈現這套編輯方式（例如專欄文章的幕後流程說明、協作標記、或一篇 meta 文章），讓讀者看見方法本身，而不只是成果。目前文章已先以「作者 + 與 AI 協作編輯」署名標記。
