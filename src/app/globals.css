@@ -170,3 +170,31 @@ body {
 .mh-edition { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
 .mh-day     { font-family: var(--mono); font-size: clamp(56px, 9vw, 84px); font-weight: 700; line-height: .85; letter-spacing: -.03em; color: var(--accent); }
 .mh-ym      { font-family: var(--mono); font-size: 16px; font-weight: 600; letter-spacing: .02em; }
+
+/* ---- Article prose (markdown 渲染) — rendered markdown 排版 ------------- */
+.article-prose { color: #3f3f46; font-size: 16px; line-height: 1.85; }
+.article-prose > * + * { margin-top: 1.25rem; }
+.article-prose h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #18181b;
+  line-height: 1.4;
+  margin-top: 2.5rem;
+  padding-left: 0.7rem;
+  border-left: 3px solid var(--accent);
+}
+.article-prose h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #27272a;
+  margin-top: 2rem;
+}
+.article-prose p { margin-top: 1.25rem; }
+.article-prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.article-prose a:hover { color: var(--accent-hover); }
+.article-prose strong { font-weight: 700; color: #18181b; }
+.article-prose ul { margin-top: 1.25rem; padding-left: 1.3rem; list-style: disc; }
+.article-prose ul li { margin-top: 0.5rem; }
+.article-prose ul li::marker { color: var(--accent); }
+.article-prose hr { margin: 2.5rem 0; border: 0; border-top: 1px solid #e4e4e7; }
+.article-prose h3:has(+ ul) { font-size: 0.95rem; color: #71717a; margin-top: 2rem; }

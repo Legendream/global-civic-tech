@@ -30,7 +30,8 @@ type Article = {
 
 async function generateDigest(
   articles: Article[],
-  lang: "zh" | "en"
+  lang: "zh" | "en",
+  date: string
 ): Promise<string> {
   const isZh = lang === "zh";
 
@@ -44,7 +45,7 @@ async function generateDigest(
     .join("\n\n");
 
   const prompt = isZh
-    ? `你是公民科技研究員。以下是今天的 ${articles.length} 則全球公民科技新聞，請用繁體中文生成一份每日摘要報告，包含：
+    ? `你是公民科技研究員。今日日期：${date}。以下是今天的 ${articles.length} 則全球公民科技新聞，請用繁體中文生成一份每日摘要報告，包含：
 1. 開頭段落（2-3句）總結今日整體亮點與趨勢
 2. 依地區分組呈現各則新聞，每則新聞寫：標題、2-3句說明（這是什麼專案或政策、解決什麼問題、有何意義）
 3. 結尾段落（2-3句）觀察今日全球公民科技發展方向
@@ -53,7 +54,7 @@ async function generateDigest(
 ${articleList}
 
 報告請使用純文字，不要 Markdown 標記，必須使用繁體中文。`
-    : `You are a civic tech researcher. Here are today's ${articles.length} global civic tech news items. Generate a daily digest in English including:
+    : `You are a civic tech researcher. Today's date: ${date}. Here are today's ${articles.length} global civic tech news items. Generate a daily digest in English including:
 1. An opening paragraph (2-3 sentences) summarizing today's highlights and trends
 2. News grouped by region; for each item write the title and 2-3 sentences explaining what the project or policy is, what problem it solves, and why it matters
 3. A closing paragraph (2-3 sentences) on today's broader civic tech directions
@@ -112,7 +113,7 @@ async function main() {
 
   console.log(`Found ${articles.length} relevant articles. Generating digests...`);
 
-  const content_zh = await generateDigest(articles, "zh");
+  const content_zh = await generateDigest(articles, "zh", targetDate);
 
   const { error: upsertError } = await supabase
     .from("daily_digests")

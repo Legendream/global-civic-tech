@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 1800;
 
 import { getTranslations } from "next-intl/server";
 import { supabase, isRelevant, type Article, type DailyDigest } from "@/lib/supabase";
@@ -84,11 +84,12 @@ export default async function HomePage({
   const { locale } = await params;
   const t = await getTranslations("home");
   const today = new Date().toISOString().split("T")[0];
-  const result = await getTodayDigest();
-  const articles =
-    result.status === "ready"
-      ? await getTodayArticles(today)
-      : await getRecentArticles();
+  const [result, todayArticles, recentArticles] = await Promise.all([
+    getTodayDigest(),
+    getTodayArticles(today),
+    getRecentArticles(),
+  ]);
+  const articles = result.status === "ready" ? todayArticles : recentArticles;
   const isZh = locale === "zh";
 
   // Taiwan time (UTC+8) for pending state messaging
