@@ -92,8 +92,11 @@ async function main() {
     process.exit(1);
   }
 
-  // 排除雜訊（relevance=0），與前端顯示一致；也避免把未翻譯的雜訊餵進報告
-  const articles = (rawArticles ?? []).filter((a) => a.relevance == null || a.relevance >= 1);
+  // 每日摘要「從嚴」：只收 relevance=2（明確公民科技），不收 1（政府 IT/人事/採購等
+  // 邊緣案例）與 0（雜訊）。邊緣案例仍會在網站文章列表/地圖顯示（前端用 isRelevant >=1），
+  // 只是不進每日報告與語音，讓 Claire 挑電子報素材的這份摘要保持高訊噪比。
+  // 註：新文章一律經 process.ts 評分（0/1/2，不會是 null）；歷史 null 資料不在當日範圍內。
+  const articles = (rawArticles ?? []).filter((a) => a.relevance === 2);
 
   if (articles.length === 0) {
     console.log("No relevant processed articles today. Saving empty record.");
