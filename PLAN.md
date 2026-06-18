@@ -73,7 +73,8 @@ global-civic-tech/
 │   ├── reprocess.ts                    ← 一次性：重生歷史文章的真摘要 + 15 類標籤（修舊 bug）
 │   ├── export-corpus.ts                ← 把語料匯出 output/corpus.json 供主題分析（不花 API）
 │   ├── digest.ts                       ← 彙整當日文章 → 生成 daily_digests
-│   └── audio.ts                        ← 當日摘要 → OpenAI TTS → mp3 上傳 Supabase Storage
+│   ├── audio.ts                        ← 當日摘要 → OpenAI TTS → mp3 上傳 Supabase Storage
+│   └── newsletter.ts                   ← 主題式電子報草稿生成器（手動跑，非 cron、不上網站；輸出 output/，見 NEWSLETTER.md）
 │
 ├── supabase/
 │   ├── schema.sql                      ← 建立 articles、daily_digests 兩張表 + RLS + GRANT（含 relevance 欄位）
@@ -323,12 +324,15 @@ npx tsx scripts/export-corpus.ts                      # 匯出語料供主題分
 DRY_RUN=true LIMIT=12 npx tsx scripts/reprocess.ts    # 重生摘要+標籤 預覽（不寫入）
 npx tsx scripts/reprocess.ts                          # 正式重生（只處理需重處理的文章，可重跑）
 
+# 主題式電子報草稿（手動跑，需 ANTHROPIC_API_KEY）
+TOPIC="開放資料如何提升選舉透明度" npm run newsletter   # 產出 output/newsletter-日期-主題.md（見 NEWSLETTER.md）
+
 # Build / 型別檢查
 npm run build
 npx tsc --noEmit
 ```
 
-> **注意（呼叫 Claude 的腳本）**：`process.ts` / `digest.ts` / `reprocess.ts` 需 `ANTHROPIC_API_KEY`，請在自己的終端機執行（部分代理環境會擋此變數）。`fetch.ts` / `export-corpus.ts` / `audio.ts` 不需 Claude 金鑰。
+> **注意（呼叫 Claude 的腳本）**：`process.ts` / `digest.ts` / `reprocess.ts` / `newsletter.ts` 需 `ANTHROPIC_API_KEY`，請在自己的終端機執行（部分代理環境會擋此變數）。`fetch.ts` / `export-corpus.ts` / `audio.ts` 不需 Claude 金鑰。
 
 ---
 
