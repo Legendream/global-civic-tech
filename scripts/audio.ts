@@ -124,6 +124,11 @@ async function main() {
     return;
   }
 
+  if (!digest.content_zh) {
+    console.log("Digest content is empty (no articles today) — skipping audio.");
+    return;
+  }
+
   const chunks = splitIntoChunks(digest.content_zh);
   console.log(
     `Digest is ${digest.content_zh.length} chars → ${chunks.length} TTS chunk(s).`

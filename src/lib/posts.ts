@@ -3,7 +3,7 @@ import path from "path";
 import matter from "gray-matter";
 import { marked } from "marked";
 
-const POSTS_DIR = path.join(process.cwd(), "content/posts");
+const POSTS_DIR = path.join(process.cwd(), "Article");
 
 export type PostMeta = {
   slug: string;
@@ -17,7 +17,7 @@ export type PostMeta = {
 export type Post = PostMeta & { html: string };
 
 function readPostFile(slug: string) {
-  const file = path.join(POSTS_DIR, `${slug}.md`);
+  const file = path.join(POSTS_DIR, slug, `${slug}.md`);
   if (!fs.existsSync(file)) return null;
   return matter(fs.readFileSync(file, "utf8"));
 }
@@ -32,9 +32,9 @@ function fmtDate(d: unknown): string {
 export function getPostSlugs(): string[] {
   if (!fs.existsSync(POSTS_DIR)) return [];
   return fs
-    .readdirSync(POSTS_DIR)
-    .filter((f) => f.endsWith(".md"))
-    .map((f) => f.replace(/\.md$/, ""));
+    .readdirSync(POSTS_DIR, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name);
 }
 
 export function getAllPosts(): PostMeta[] {

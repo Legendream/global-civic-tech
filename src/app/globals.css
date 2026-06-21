@@ -198,3 +198,5 @@ body {
 .article-prose ul li::marker { color: var(--accent); }
 .article-prose hr { margin: 2.5rem 0; border: 0; border-top: 1px solid #e4e4e7; }
 .article-prose h3:has(+ ul) { font-size: 0.95rem; color: #71717a; margin-top: 2rem; }
+.article-prose img { max-width: 100%; height: auto; border-radius: 6px; margin-top: 1.5rem; }
+.article-prose em { display: block; font-size: 0.85rem; color: #71717a; text-align: center; margin-top: 0.5rem; font-style: normal; }

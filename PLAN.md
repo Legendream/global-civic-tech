@@ -61,6 +61,7 @@ global-civic-tech/
 │   │   └── request.ts                  ← getRequestConfig，載入 messages
 │   │
 │   ├── lib/
+│   │   ├── posts.ts                    ← 讀取 Article/ 下各子資料夾的 .md 文章，供 /articles 頁面使用
 │   │   ├── supabase.ts                 ← Supabase client + Article / DailyDigest 型別 + isRelevant() 雜訊過濾
 │   │   ├── tags.ts                     ← 主題分類單一來源：ALLOWED_TAGS(15類) + TAG_ZH 對照
 │   │   └── bookmarks.tsx               ← BookmarkProvider，收藏狀態存 localStorage
@@ -75,6 +76,11 @@ global-civic-tech/
 │   ├── digest.ts                       ← 彙整當日文章 → 生成 daily_digests
 │   ├── audio.ts                        ← 當日摘要 → OpenAI TTS → mp3 上傳 Supabase Storage
 │   └── newsletter.ts                   ← 主題式電子報草稿生成器（手動跑，非 cron、不上網站；輸出 output/，見 NEWSLETTER.md）
+│
+├── Article/                            ← 專欄手寫文章（每篇一個子資料夾）
+│   └── [article-slug]/
+│       ├── [article-slug].md           ← 文章本體（frontmatter + Markdown）
+│       └── *.png / *.jpg              ← 搭配圖片（由作者自行放入）
 │
 ├── supabase/
 │   ├── schema.sql                      ← 建立 articles、daily_digests 兩張表 + RLS + GRANT（含 relevance 欄位）
