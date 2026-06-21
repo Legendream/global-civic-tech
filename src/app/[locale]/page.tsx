@@ -10,6 +10,7 @@ import Link from "next/link";
 
 type DigestResult =
   | { status: "ready"; digest: DailyDigest }
+  | { status: "empty" }
   | { status: "pending" }
   | { status: "error" };
 
@@ -23,6 +24,7 @@ async function getTodayDigest(): Promise<DigestResult> {
       .single();
     if (error && error.code !== "PGRST116") return { status: "error" };
     if (!data) return { status: "pending" };
+    if (!data.content_zh) return { status: "empty" };
     return { status: "ready", digest: data };
   } catch {
     return { status: "error" };
@@ -98,10 +100,10 @@ export default async function HomePage({
   const twMinuteOfDay = twHour * 60 + nowUTC.getUTCMinutes();
   const pendingMsg =
     twMinuteOfDay < 8 * 60
-      ? { title: "今日摘要尚未生成", body: "每日 08:00 自動彙整，今天的內容稍後就會出現。", sub: "下次更新 · 今日 08:00 (UTC+8)" }
-      : twMinuteOfDay < 9 * 60 + 30
-      ? { title: "今日摘要正在生成中", body: "排程已在 08:00 啟動，通常需要幾分鐘完成，稍後重新整理頁面即可看到。", sub: "GitHub Actions 排程執行中，預計數分鐘後出現" }
-      : { title: "今日摘要尚未出現", body: "預計 08:00 的更新延遲了，系統可能暫時忙碌，請稍後再試。", sub: "若持續未更新，歡迎至 GitHub 回報問題" };
+      ? { title: "今日摘要尚未生成", body: "每日排程自動彙整，今天的內容稍後就會出現。", sub: "預計今日上午更新" }
+      : twMinuteOfDay < 13 * 60
+      ? { title: "今日摘要準備中", body: "排程正在抓取與整理最新報導，通常在今日上午至中午間完成，稍後重新整理頁面即可看到。", sub: "GitHub Actions 排程執行中" }
+      : { title: "今日摘要尚未出現", body: "更新通常在上午至中午間完成，若仍未出現可能是系統暫時繁忙，請稍後再試。", sub: "若持續未更新，歡迎至 GitHub 回報問題" };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 space-y-12">
@@ -153,6 +155,20 @@ export default async function HomePage({
               {pendingMsg.body}
             </p>
             <p className="text-xs text-zinc-400 tech-mono mt-3">{pendingMsg.sub}</p>
+          </div>
+        )}
+
+        {result.status === "empty" && (
+          <div className="bg-white border border-zinc-200 rounded-xl p-8 text-center">
+            <div className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-zinc-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+              </svg>
+            </div>
+            <p className="text-zinc-900 font-medium mb-1">今日無相關報導</p>
+            <p className="text-sm text-zinc-500 max-w-sm mx-auto leading-relaxed">
+              今天收錄的文章未達收錄標準，摘要從缺。以下顯示近期報導。
+            </p>
           </div>
         )}
 
