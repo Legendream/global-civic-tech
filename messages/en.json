@@ -32,17 +32,6 @@
     "audioDigest": "Audio Digest",
     "audioHint": "Traditional Chinese · Taiwanese accent"
   },
-  "cases": {
-    "title": "All Articles",
-    "filterCountry": "Country / Region",
-    "filterTag": "Tag",
-    "filterAll": "All",
-    "noResults": "No matching articles",
-    "source": "Source",
-    "publishedAt": "Published",
-    "searchPlaceholder": "Search title, summary…",
-    "results": "results"
-  },
   "map": {
     "title": "Global Civic Tech Map",
     "subtitle": "Click a country to see its civic tech cases",
