@@ -222,11 +222,87 @@ const SOURCES: FeedSource[] = [
     language: "en",
     tags: ["civic-tech", "open-source", "philippines"],
   },
+  {
+    name: "Mozilla Foundation",
+    url: "https://blog.mozilla.org/feed/",
+    country: "International",
+    country_code: null,
+    language: "en",
+    tags: ["digital-rights", "open-source", "civic-tech"],
+  },
+  {
+    name: "e-Estonia",
+    url: "https://e-estonia.com/feed/",
+    country: "Estonia",
+    country_code: "EE",
+    language: "en",
+    tags: ["govtech", "public-service", "e-participation"],
+  },
+  {
+    name: "Access Now",
+    url: "https://www.accessnow.org/feed/",
+    country: "International",
+    country_code: null,
+    language: "en",
+    tags: ["digital-rights", "civic-tech", "transparency"],
+  },
+  {
+    name: "Codeando México",
+    url: "https://medium.com/feed/codeandomexico",
+    country: "Mexico",
+    country_code: "MX",
+    language: "es",
+    tags: ["civic-tech", "open-source", "e-participation"],
+  },
 ];
+
+/**
+ * 把 README 的 markdown 清成純文字摘錄，去掉 badge／圖片／連結／程式碼框等雜訊，
+ * 讓後續翻譯與摘要拿到的是「這工具在做什麼」，而不是一堆標記符號。
+ */
+export function cleanReadme(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, " ")          // 圍欄程式碼區塊
+    .replace(/`([^`]+)`/g, "$1")               // 行內程式碼
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")      // 圖片（含 badge）
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")   // 連結 → 只留文字
+    .replace(/<!--[\s\S]*?-->/g, " ")          // HTML 註解
+    .replace(/<[^>]+>/g, " ")                   // HTML 標籤
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")        // 標題符號
+    .replace(/^\s{0,3}>\s?/gm, "")              // 引言
+    .replace(/^\s{0,3}[-*+]\s+/gm, "")         // 無序清單
+    .replace(/^\s{0,3}\d+\.\s+/gm, "")         // 有序清單
+    .replace(/^[\s:|-]{3,}$/gm, " ")           // 表格分隔列
+    .replace(/\|/g, " ")                        // 表格直線
+    .replace(/[*_~]{1,3}/g, "")                // 粗體／斜體／刪除線標記
+    .replace(/\r/g, "")
+    .replace(/\n{2,}/g, "\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+/** 抓單一 repo 的 README 原文（raw），失敗回 null（無 README 或被限流）。 */
+async function fetchReadme(
+  fullName: string,
+  headers: Record<string, string>
+): Promise<string | null> {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${fullName}/readme`, {
+      headers: { ...headers, Accept: "application/vnd.github.raw" },
+    });
+    if (!res.ok) return null;
+    const raw = await res.text();
+    const cleaned = cleanReadme(raw).slice(0, 800);
+    return cleaned.length >= 40 ? cleaned : null; // 太短的不值得當摘錄
+  } catch {
+    return null;
+  }
+}
 
 // GitHub Topics API for civic-tech / govtech / open-data repos updated recently
 async function fetchGitHubRepos() {
-  const token = process.env.GITHUB_TOKEN;
+  // 正式排程用 GITHUB_TOKEN，本機 .env.local 用 GH_TOKEN，兩種名字都接受
+  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
   };
@@ -240,20 +316,28 @@ async function fetchGitHubRepos() {
   if (!res.ok) return [];
 
   const data = await res.json();
-  return (data.items ?? [])
+  const repos = (data.items ?? [])
     // 沒有描述的 repo 多半是雜訊（例：「無描述」「{build}」），略過
-    .filter((repo: Record<string, unknown>) => !!(repo.description as string | null)?.trim())
-    .map((repo: Record<string, unknown>) => ({
-    title_original: (repo.description as string | null) || (repo.name as string),
-    url: repo.html_url as string,
-    source: "GitHub",
-    country: null,
-    country_code: null,
-    tags: ["civic-tech", "open-source", "github"],
-    language_original: "en",
-    published_at: repo.pushed_at as string,
-    processed: false,
-  }));
+    .filter((repo: Record<string, unknown>) => !!(repo.description as string | null)?.trim());
+
+  const inserts: Record<string, unknown>[] = [];
+  for (const repo of repos) {
+    // 抓 README 當內文摘錄：讓摘要從「一行描述」升級成「這工具在做什麼」
+    const readme = await fetchReadme(repo.full_name as string, headers);
+    inserts.push({
+      title_original: (repo.description as string | null) || (repo.name as string),
+      url: repo.html_url as string,
+      source: "GitHub",
+      country: null,
+      country_code: null,
+      tags: ["civic-tech", "open-source", "github"],
+      language_original: "en",
+      published_at: repo.pushed_at as string,
+      content_snippet: readme,
+      processed: false,
+    });
+  }
+  return inserts;
 }
 
 async function main() {
