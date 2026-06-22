@@ -40,7 +40,7 @@ global-civic-tech/
 │   │       ├── layout.tsx              ← HTML shell + Navbar + Footer + Provider；含 metadataBase
 │   │       ├── page.tsx                ← 首頁：今日摘要（含語音）+ 最新報導
 │   │       ├── digest/page.tsx         ← 報告頁：按日期瀏覽 / 搜尋全部 兩個分頁
-│   │       ├── cases/page.tsx          ← 舊路由，redirect → /digest
+│   │       ├── cases/page.tsx          ← 舊路由，redirect → /digest（保留防止舊書籤失效）
 │   │       ├── map/page.tsx            ← 全球地圖
 │   │       ├── bookmarks/page.tsx      ← 靈感庫（收藏的報導）
 │   │       └── about/page.tsx          ← 關於頁（masthead hero + 收錄標準 + 「該怎麼開始使用」導覽連結 + 來源表格，數量由 SOURCES.length 動態帶入文案）
@@ -144,7 +144,7 @@ global-civic-tech/
 GitHub Actions（每日 08:00 台灣時間）
   ↓
 scripts/fetch.ts
-  從 23 個 RSS 來源 + GitHub Topics API 抓文章
+  從 29 個 RSS 來源 + GitHub Topics API 抓文章
   GitHub 查詢已收緊：stars>=10、pushed>2024、且過濾無描述 repo
   upsert 進 articles（processed = false）
   ↓
@@ -216,15 +216,15 @@ scripts/audio.ts
 
 ## RSS 資料來源（scripts/fetch.ts）
 
-共 25 個 feed，加上 GitHub Topics API（`civic-tech` / `govtech` / `open-data`）。
+共 29 個 feed，加上 GitHub Topics API（`civic-tech` / `govtech` / `open-data`）。
 
 **美國 / 英國 / 澳洲**：mySociety、Beeck Center、GovTech Review、GDS Blog、Nextgov、Federal News Network、Government Technology、StateScoop、FedScoop、PublicTechnology、Smart Cities Dive
 
-**國際組織**：The GovLab、Endstate、OECD-OPSI、Open Government Partnership、Decidim、Open Contracting Partnership、Open Knowledge Foundation、Global Voices Advox
+**國際組織**：The GovLab、Endstate、OECD-OPSI、Open Government Partnership、Decidim、Open Contracting Partnership、Open Knowledge Foundation、Global Voices Advox、Mozilla Foundation、Access Now
 
-**區域型（亞洲 / 非洲）**：Code for Africa、Code for Japan、CivicDataLab（India）、GovTech Singapore、Open Culture Foundation（Taiwan）、Open Source Society PH（Philippines）
+**區域型（亞洲 / 非洲 / 歐洲 / 拉美）**：Code for Africa、Code for Japan、CivicDataLab（India）、GovTech Singapore、Open Culture Foundation（Taiwan）、Open Source Society PH（Philippines）、e-Estonia（Estonia）、Codeando México（Mexico，西語）
 
-> **注意**：RSS URL 可能會過期或改版，需定期確認是否仍有效。
+> **注意**：RSS URL 可能會過期或改版，需定期確認是否仍有效。Nesta（英國）與 Tech Policy Press（美國）無 RSS feed，評估後略過。
 
 ---
 
@@ -245,7 +245,7 @@ scripts/audio.ts
 
 ---
 
-## 目前狀態（2026-06-15）
+## 目前狀態（2026-06-23）
 
 ### 已完成
 - [x] Next.js 16 專案、Supabase schema、繁中前端、四階段資料管道（fetch / process / digest / audio）
@@ -286,11 +286,21 @@ scripts/audio.ts
   - 首頁「當日摘要」pending 卡補上「每日約 08:00 更新」時間提示，減少使用者困惑
   - `supabase/migration_2026-05_relevance.sql` 已在正式 DB 執行
 
-- [x] **新增亞洲來源**（2026-06-15，待 PR）
+- [x] **新增亞洲來源**（2026-06-15，PR #13）
   - 新增 Open Culture Foundation（台灣，`ocf.tw/feed.xml`）：開放資料、開源、數位治理，直接對應本專案主題，feed 驗證有效且持續更新
   - 新增 Open Source Society PH（菲律賓，`blog.ossph.org/feed`）：偶有公民科技報導（BetterGov.ph 透明平台、Balota 選票工具），其餘文章交 AI 過濾，年費 < $0.01
   - 研究過並排除：g0v blog（已停站）、沃草（內容為政治新聞非 govtech）、Code for Korea（無 RSS）、Safecast（輻射監測偏環境科學）、Newstapa / Civic Tech Japan / Code for Kanazawa（feed 無效或已停更）
   - 來源總數：23 → 25
+
+- [x] **GitHub README 整合 + 新增 4 個 RSS 來源 + 移除死碼**（2026-06-23，PR #16）
+  - `fetch.ts` 新增 `cleanReadme()` + `fetchReadme()`：新 GitHub repo 入庫時自動抓 README 做為 `content_snippet`，讓摘要從「一行描述」升級成「這工具在做什麼」
+  - `fetch.ts` 修正 token 命名 bug：原只讀 `GITHUB_TOKEN`，改為 `GITHUB_TOKEN || GH_TOKEN`，本機 `.env.local` 與 CI 兩種命名都接受
+  - 回填 38 筆既有 GitHub repo 的 README（11 筆確認無 README），再以 `BATCH_SIZE=40 npx tsx scripts/process.ts` 重跑摘要
+  - 新增 RSS 來源：Mozilla Foundation（數位權利）、e-Estonia（電子治理標竿）、Access Now（數位人權 + 西語混合）、Codeando México（西語，拉美首個來源）
+  - DeepL 支援西語/愛沙尼亞語自動偵測，無需改程式碼
+  - `about/page.tsx` SOURCES 同步：25 → 29 筆
+  - 移除 `CasesClient.tsx`（無路由引用的死碼）及對應 `cases` i18n namespace
+  - 評估並排除：Civic Tech Field Guide（Airtable 後端、無 RSS）、Nesta（無 RSS）、Tech Policy Press（Next.js SPA、無 RSS）、New America（feed 空）、Asuntos del Sur（內容偏民主倡議非公民科技）、DATA Uruguay（無 feed）
 
 ### 待完成
 - [ ] 確認 GitHub Actions 排程穩定執行（每日 UTC 00:00）
@@ -304,7 +314,7 @@ scripts/audio.ts
 - [ ] `MapClient.tsx` 套用 `isRelevant` 過濾，使地圖也排除 relevance=0 雜訊（目前尚未套）
 - [ ] 加入 Email 推送（每日摘要寄給自己）
 - [ ] 加入日期範圍篩選
-- [ ] 移除已停用的 `CasesClient.tsx`（/cases 已改為 redirect，此元件不再被引用）
+- [x] 移除已停用的 `CasesClient.tsx`（2026-06-23，PR #16）
 - [ ] 第二層自由關鍵字（封閉 15 主類 + 每篇 1–2 個自由關鍵字）+ 季度重新聚類檢視，作為分類長期演進機制
 
 ---
