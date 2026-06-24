@@ -143,16 +143,13 @@ export default function DigestList({
               <button
                 key={d.date}
                 onClick={() => setSelected(d.date)}
-                className={`flex-shrink-0 flex flex-col items-start px-4 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
+                className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
                   d.date === selected
                     ? "bg-indigo-600 text-white shadow-sm"
                     : "bg-white border border-zinc-200 text-zinc-600 hover:border-indigo-300"
                 }`}
               >
-                <span className="font-medium">{d.date}</span>
-                <span className={`text-xs mt-0.5 ${d.date === selected ? "text-indigo-200" : "text-zinc-400"}`}>
-                  {d.article_count} {isZh ? "則" : "items"}
-                </span>
+                {d.date}
               </button>
             ))}
           </div>
@@ -181,22 +178,26 @@ export default function DigestList({
 
               <div className="px-6 py-5">
                 {!loadingArticles && articles.length > 0 ? (
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-5 pb-4 border-b border-zinc-100">
+                  <div className="flex flex-wrap items-center gap-y-2 mb-5 pb-4 border-b border-zinc-100">
                     {[
-                      { v: articles.length, k: isZh ? "則報導" : "articles" },
+                      { v: current.article_count, k: isZh ? "則入日報" : "in digest" },
+                      { v: articles.length,        k: isZh ? "則收錄" : "collected" },
                       { v: new Set(articles.map((a) => a.country_code).filter(Boolean)).size, k: isZh ? "國家・地區" : "countries" },
                       { v: new Set(articles.flatMap((a) => a.tags)).size, k: isZh ? "主題標籤" : "topics" },
-                    ].map((s) => (
-                      <div key={s.k} className="flex items-baseline gap-1.5 whitespace-nowrap">
-                        <span className="text-xl font-bold text-zinc-900 tabular-nums tech-mono leading-none">{s.v}</span>
-                        <span className="text-xs text-zinc-400">{s.k}</span>
+                    ].map((s, i) => (
+                      <div key={s.k} className="flex items-center gap-x-4 whitespace-nowrap">
+                        {i > 0 && <span className="text-xs text-zinc-200 select-none">·</span>}
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-xl font-bold text-zinc-900 tabular-nums tech-mono leading-none">{s.v}</span>
+                          <span className="text-xs text-zinc-400">{s.k}</span>
+                        </div>
                       </div>
                     ))}
                     <span className="ml-auto text-xs text-zinc-300 tech-mono tracking-wide whitespace-nowrap">{current.date}</span>
                   </div>
                 ) : (
                   <p className="text-xs text-zinc-400 mb-4">
-                    {current.date} · {current.article_count} {isZh ? "則報導" : "articles"}
+                    {current.date} · {current.article_count} {isZh ? "則入日報" : "in digest"}
                   </p>
                 )}
                 <DigestContent text={isZh ? current.content_zh : (current.content_en ?? current.content_zh)} />
