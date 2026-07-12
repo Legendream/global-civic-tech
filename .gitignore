@@ -44,3 +44,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 私人文章工作檔（發個人 Medium／不公開，不進版控）
+Article/開發心得*
+協作寫文章經驗回顧.md
