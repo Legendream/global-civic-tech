@@ -33,17 +33,6 @@
     "audioDigest": "語音摘要",
     "audioHint": "繁體中文・台灣口音"
   },
-  "cases": {
-    "title": "全部報導",
-    "filterCountry": "國家 / 地區",
-    "filterTag": "主題",
-    "filterAll": "全部",
-    "noResults": "無符合條件的報導",
-    "source": "來源",
-    "publishedAt": "發布日期",
-    "searchPlaceholder": "搜尋標題、摘要…",
-    "results": "則結果"
-  },
   "map": {
     "title": "全球公民科技地圖",
     "subtitle": "點擊國家查看該地公民科技案例",

@@ -35,6 +35,10 @@ const SOURCES: Source[] = [
   { name: "GovTech Singapore", url: "https://www.tech.gov.sg", country: "新加坡", flag: "🇸🇬", tags: ["govtech", "public-service"] },
   { name: "Open Culture Foundation", url: "https://ocf.tw", country: "台灣", flag: "🇹🇼", tags: ["open-data", "open-source"] },
   { name: "Open Source Society PH", url: "https://www.ossph.org", country: "菲律賓", flag: "🇵🇭", tags: ["civic-tech", "open-source"] },
+  { name: "Mozilla Foundation", url: "https://blog.mozilla.org", country: "國際", flag: "🌐", tags: ["digital-rights", "open-source"] },
+  { name: "e-Estonia", url: "https://e-estonia.com", country: "愛沙尼亞", flag: "🇪🇪", tags: ["govtech", "e-participation"] },
+  { name: "Access Now", url: "https://www.accessnow.org", country: "國際", flag: "🌐", tags: ["digital-rights", "transparency"] },
+  { name: "Codeando México", url: "https://medium.com/codeandomexico", country: "墨西哥", flag: "🇲🇽", tags: ["civic-tech", "open-source"] },
 ];
 
 export default async function AboutPage({
