@@ -245,7 +245,7 @@ scripts/audio.ts
 
 ---
 
-## 目前狀態（2026-06-23）
+## 目前狀態（2026-06-24）
 
 ### 已完成
 - [x] Next.js 16 專案、Supabase schema、繁中前端、四階段資料管道（fetch / process / digest / audio）
@@ -301,6 +301,11 @@ scripts/audio.ts
   - `about/page.tsx` SOURCES 同步：25 → 29 筆
   - 移除 `CasesClient.tsx`（無路由引用的死碼）及對應 `cases` i18n namespace
   - 評估並排除：Civic Tech Field Guide（Airtable 後端、無 RSS）、Nesta（無 RSS）、Tech Policy Press（Next.js SPA、無 RSS）、New America（feed 空）、Asuntos del Sur（內容偏民主倡議非公民科技）、DATA Uruguay（無 feed）
+
+- [x] **歷史報告頁統計列拆分「入日報 / 收錄」**（2026-06-24，PR #17）
+  - 日期按鈕移除則數（原本顯示 `article_count` 即日報收錄數），按鈕只保留日期，版面更簡潔
+  - 音檔下方統計列原本只有「則報導」（`articles.length`，即 relevance ≥ 1 的全部文章），改為「則入日報」（`daily_digests.article_count`，即 relevance=2 進入日報與音檔者）+ 「則收錄」（`articles.length`，即資料庫實際顯示數），兩個數字中點分隔
+  - 修正過去使用者看到日期按鈕「26則」與卡片區「63則」不一致的困惑——兩個數字本來意義不同（入日報 vs 全收錄），現在各有其標籤
 
 ### 待完成
 - [ ] 確認 GitHub Actions 排程穩定執行（每日 UTC 00:00）
