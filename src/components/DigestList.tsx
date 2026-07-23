@@ -29,6 +29,8 @@ export default function DigestList({
   const [hasMoreDigests, setHasMoreDigests] = useState(initialDigests.length >= DIGESTS_PAGE_SIZE);
   const [loadingMoreDigests, setLoadingMoreDigests] = useState(false);
   const loadingMoreDigestsRef = useRef(false);
+  const dateScrollRef = useRef<HTMLDivElement>(null);
+  const dragStateRef = useRef({ isDown: false, startX: 0, startScrollLeft: 0, dragged: false });
   const [selected, setSelected] = useState<string | null>(digests[0]?.date ?? null);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loadingArticles, setLoadingArticles] = useState(false);
@@ -98,6 +100,42 @@ export default function DigestList({
       loadMoreDigests();
     }
   };
+
+  const handleDateMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = dateScrollRef.current;
+    if (!el) return;
+    dragStateRef.current = {
+      isDown: true,
+      startX: e.pageX,
+      startScrollLeft: el.scrollLeft,
+      dragged: false,
+    };
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const state = dragStateRef.current;
+      const el = dateScrollRef.current;
+      if (!state.isDown || !el) return;
+      const delta = e.pageX - state.startX;
+      if (Math.abs(delta) > 5) state.dragged = true;
+      el.scrollLeft = state.startScrollLeft - delta;
+    };
+    const handleMouseUp = () => {
+      dragStateRef.current.isDown = false;
+      // 延遲重置 dragged：讓拖曳放開瞬間緊接著的合成 click 事件仍能讀到 true 而略過，
+      // 但不留到下一次無關的（例如鍵盤觸發的）click。
+      setTimeout(() => {
+        dragStateRef.current.dragged = false;
+      }, 0);
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
 
   const countries = useMemo(
     () => [...new Set(allArticles.map((a) => a.country).filter(Boolean))].sort() as string[],
@@ -171,13 +209,21 @@ export default function DigestList({
       {tab === "digest" && (
         <>
           <div
-            className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide"
+            ref={dateScrollRef}
+            className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide cursor-grab active:cursor-grabbing select-none"
             onScroll={handleDateScroll}
+            onMouseDown={handleDateMouseDown}
           >
             {digests.map((d) => (
               <button
                 key={d.date}
-                onClick={() => setSelected(d.date)}
+                onClick={() => {
+                  if (dragStateRef.current.dragged) {
+                    dragStateRef.current.dragged = false;
+                    return;
+                  }
+                  setSelected(d.date);
+                }}
                 className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
                   d.date === selected
                     ? "bg-indigo-600 text-white shadow-sm"
