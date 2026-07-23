@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { supabase, isRelevant, type DailyDigest, type Article } from "@/lib/supabase";
 import { tagZh } from "@/lib/tags";
@@ -10,8 +10,10 @@ import DigestContent from "./DigestContent";
 
 type Tab = "digest" | "search";
 
+const DIGESTS_PAGE_SIZE = 30;
+
 export default function DigestList({
-  digests,
+  digests: initialDigests,
   locale,
 }: {
   digests: DailyDigest[];
@@ -23,6 +25,10 @@ export default function DigestList({
   const [tab, setTab] = useState<Tab>("digest");
 
   // Digest tab state
+  const [digests, setDigests] = useState<DailyDigest[]>(initialDigests);
+  const [hasMoreDigests, setHasMoreDigests] = useState(initialDigests.length >= DIGESTS_PAGE_SIZE);
+  const [loadingMoreDigests, setLoadingMoreDigests] = useState(false);
+  const loadingMoreDigestsRef = useRef(false);
   const [selected, setSelected] = useState<string | null>(digests[0]?.date ?? null);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loadingArticles, setLoadingArticles] = useState(false);
@@ -66,6 +72,32 @@ export default function DigestList({
         setLoadingAll(false);
       });
   }, [tab, allArticles.length]);
+
+  const loadMoreDigests = async () => {
+    if (loadingMoreDigestsRef.current || !hasMoreDigests || digests.length === 0) return;
+    loadingMoreDigestsRef.current = true;
+    setLoadingMoreDigests(true);
+    const oldestDate = digests[digests.length - 1].date;
+    const { data } = await supabase
+      .from("daily_digests")
+      .select("*")
+      .lt("date", oldestDate)
+      .order("date", { ascending: false })
+      .limit(DIGESTS_PAGE_SIZE);
+    if (data && data.length > 0) {
+      setDigests((prev) => [...prev, ...data]);
+    }
+    if (!data || data.length < DIGESTS_PAGE_SIZE) setHasMoreDigests(false);
+    setLoadingMoreDigests(false);
+    loadingMoreDigestsRef.current = false;
+  };
+
+  const handleDateScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    if (el.scrollWidth - el.scrollLeft - el.clientWidth < 200) {
+      loadMoreDigests();
+    }
+  };
 
   const countries = useMemo(
     () => [...new Set(allArticles.map((a) => a.country).filter(Boolean))].sort() as string[],
@@ -138,7 +170,10 @@ export default function DigestList({
       {/* Tab A: by date */}
       {tab === "digest" && (
         <>
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
+          <div
+            className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide"
+            onScroll={handleDateScroll}
+          >
             {digests.map((d) => (
               <button
                 key={d.date}
@@ -152,6 +187,11 @@ export default function DigestList({
                 {d.date}
               </button>
             ))}
+            {loadingMoreDigests && (
+              <div className="flex-shrink-0 px-4 py-2.5 text-sm text-zinc-400">
+                {isZh ? "載入中…" : "Loading…"}
+              </div>
+            )}
           </div>
 
           {current ? (
