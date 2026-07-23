@@ -30,7 +30,8 @@ export default function DigestList({
   const [loadingMoreDigests, setLoadingMoreDigests] = useState(false);
   const loadingMoreDigestsRef = useRef(false);
   const dateScrollRef = useRef<HTMLDivElement>(null);
-  const dragStateRef = useRef({ isDown: false, startX: 0, startScrollLeft: 0, dragged: false });
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const [selected, setSelected] = useState<string | null>(digests[0]?.date ?? null);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loadingArticles, setLoadingArticles] = useState(false);
@@ -94,48 +95,27 @@ export default function DigestList({
     loadingMoreDigestsRef.current = false;
   };
 
+  const updateScrollButtons = (el: HTMLDivElement) => {
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+
   const handleDateScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
     if (el.scrollWidth - el.scrollLeft - el.clientWidth < 200) {
       loadMoreDigests();
     }
-  };
-
-  const handleDateMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = dateScrollRef.current;
-    if (!el) return;
-    dragStateRef.current = {
-      isDown: true,
-      startX: e.pageX,
-      startScrollLeft: el.scrollLeft,
-      dragged: false,
-    };
+    updateScrollButtons(el);
   };
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const state = dragStateRef.current;
-      const el = dateScrollRef.current;
-      if (!state.isDown || !el) return;
-      const delta = e.pageX - state.startX;
-      if (Math.abs(delta) > 5) state.dragged = true;
-      el.scrollLeft = state.startScrollLeft - delta;
-    };
-    const handleMouseUp = () => {
-      dragStateRef.current.isDown = false;
-      // 延遲重置 dragged：讓拖曳放開瞬間緊接著的合成 click 事件仍能讀到 true 而略過，
-      // 但不留到下一次無關的（例如鍵盤觸發的）click。
-      setTimeout(() => {
-        dragStateRef.current.dragged = false;
-      }, 0);
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, []);
+    const el = dateScrollRef.current;
+    if (el) updateScrollButtons(el);
+  }, [digests]);
+
+  const scrollDates = (direction: "left" | "right") => {
+    dateScrollRef.current?.scrollBy({ left: direction === "left" ? -240 : 240, behavior: "smooth" });
+  };
 
   const countries = useMemo(
     () => [...new Set(allArticles.map((a) => a.country).filter(Boolean))].sort() as string[],
@@ -208,36 +188,59 @@ export default function DigestList({
       {/* Tab A: by date */}
       {tab === "digest" && (
         <>
-          <div
-            ref={dateScrollRef}
-            className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide cursor-grab active:cursor-grabbing select-none"
-            onScroll={handleDateScroll}
-            onMouseDown={handleDateMouseDown}
-          >
-            {digests.map((d) => (
-              <button
-                key={d.date}
-                onClick={() => {
-                  if (dragStateRef.current.dragged) {
-                    dragStateRef.current.dragged = false;
-                    return;
-                  }
-                  setSelected(d.date);
-                }}
-                className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
-                  d.date === selected
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "bg-white border border-zinc-200 text-zinc-600 hover:border-indigo-300"
-                }`}
-              >
-                {d.date}
-              </button>
-            ))}
-            {loadingMoreDigests && (
-              <div className="flex-shrink-0 px-4 py-2.5 text-sm text-zinc-400">
-                {isZh ? "載入中…" : "Loading…"}
-              </div>
-            )}
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => scrollDates("left")}
+              disabled={!canScrollLeft}
+              aria-label={isZh ? "往前看較新的日期" : "Scroll to more recent dates"}
+              className={`hidden sm:flex shrink-0 w-8 h-8 rounded-full bg-white border border-zinc-200 shadow-sm items-center justify-center transition-opacity cursor-pointer ${
+                canScrollLeft ? "text-zinc-600 hover:border-indigo-300" : "opacity-0 pointer-events-none"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+
+            <div
+              ref={dateScrollRef}
+              className="flex-1 min-w-0 flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide"
+              onScroll={handleDateScroll}
+            >
+              {digests.map((d) => (
+                <button
+                  key={d.date}
+                  onClick={() => setSelected(d.date)}
+                  className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+                    d.date === selected
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "bg-white border border-zinc-200 text-zinc-600 hover:border-indigo-300"
+                  }`}
+                >
+                  {d.date}
+                </button>
+              ))}
+              {loadingMoreDigests && (
+                <div className="flex-shrink-0 px-4 py-2.5 text-sm text-zinc-400">
+                  {isZh ? "載入中…" : "Loading…"}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => scrollDates("right")}
+              disabled={!canScrollRight}
+              aria-label={isZh ? "往後看較早的日期" : "Scroll to older dates"}
+              className={`hidden sm:flex shrink-0 w-8 h-8 rounded-full bg-white border border-zinc-200 shadow-sm items-center justify-center transition-opacity cursor-pointer ${
+                canScrollRight ? "text-zinc-600 hover:border-indigo-300" : "opacity-0 pointer-events-none"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
           </div>
 
           {current ? (
