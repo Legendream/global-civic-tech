@@ -6,9 +6,15 @@ on:
     - cron: "0 0 * * *"
   workflow_dispatch:
     # 允許手動在 GitHub Actions 頁面觸發
+    inputs:
+      keepalive_only:
+        description: "只跑保活步驟（測試用，不抓文章、不呼叫付費 API）"
+        type: boolean
+        default: false
 
 jobs:
   update:
+    if: ${{ !inputs.keepalive_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -52,3 +58,18 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+  # 公開 repo 連續 60 天沒有 commit，GitHub 會自動停用排程 workflow。
+  # 每次跑完呼叫「啟用 workflow」API 續命；不產生 commit，不觸發 Vercel 部署。
+  keepalive:
+    needs: update
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      actions: write
+    steps:
+      - name: Keep scheduled workflow enabled
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/daily-update.yml/enable"
+        env:
+          GH_TOKEN: ${{ github.token }}
